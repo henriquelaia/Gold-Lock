@@ -1,0 +1,185 @@
+\documentclass[12pt,a4paper]{memoir}
+
+% No Overleaf usar: \usepackage[portuguese]{babel}
+% Localmente (se babel-portuguese não estiver instalado):
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{makeidx}
+\usepackage{xspace}
+\usepackage{graphicx,color,times}
+\usepackage{fancyhdr}
+
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage[printonlyused]{acronym}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{tocbibind}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{enumitem}
+
+% Pacotes para diagramas UML com TikZ
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, decorations.markings}
+% \usepackage{tikz-uml} % Descomentar se o pacote estiver instalado
+
+% Cores para diagramas
+\definecolor{umlblue}{RGB}{52, 101, 164}
+\definecolor{umlgreen}{RGB}{78, 154, 6}
+\definecolor{umlorange}{RGB}{206, 92, 0}
+\definecolor{umlred}{RGB}{204, 0, 0}
+\definecolor{umlyellow}{RGB}{237, 212, 0}
+
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{} \fancyhead[LE,RO]{\bfseries\thepage}
+\fancyhead[LO]{\bfseries\rightmark}
+\fancyhead[RE]{\bfseries\leftmark}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15.6pt}
+\setlength{\marginparsep}{0cm}
+\setlength{\marginparwidth}{0cm}
+\setlength{\marginparpush}{0cm}
+\addtolength{\hoffset}{-1.0cm}
+\addtolength{\oddsidemargin}{\evensidemargin}
+\addtolength{\oddsidemargin}{0.5cm}
+\addtolength{\evensidemargin}{-0.5cm}
+
+
+\usepackage{fix-cm}
+% \usepackage{fourier} % Descomentar no Overleaf (TL 2018+)
+\usepackage{mathptmx} % Alternativa a fourier disponível em todas as instalações
+\usepackage[scaled=.92]{helvet}
+\definecolor{ChapGrey}{rgb}{0.6,0.6,0.6}
+\newcommand{\LargeFont}{
+  \usefont{\encodingdefault}{\rmdefault}{b}{n}
+  \fontsize{60}{80}\selectfont\color{ChapGrey}
+  }
+\makeatletter
+\makechapterstyle{GreyNum}{
+  \renewcommand{\chapnamefont}{\large\sffamily\bfseries\itshape}
+  \renewcommand{\chapnumfont}{\LargeFont}
+  \renewcommand{\chaptitlefont}{\Huge\sffamily\bfseries\itshape}
+  \setlength{\beforechapskip}{0pt}
+  \setlength{\midchapskip}{40pt}
+  \setlength{\afterchapskip}{60pt}
+  \renewcommand\chapterheadstart{\vspace*{\beforechapskip}}
+  \renewcommand\printchaptername{
+  \begin{tabular}{@{}c@{}}
+    \chapnamefont \@chapapp\\}
+    \renewcommand\chapternamenum{\noalign{\vskip 2ex}}
+    \renewcommand\printchapternum{\chapnumfont\thechapter\par}
+    \renewcommand\afterchapternum{
+  \end{tabular}
+  \par\nobreak\vskip\midchapskip}
+  \renewcommand\printchapternonum{}
+  \renewcommand\printchaptertitle[1]{
+  {\chaptitlefont{##1}\par}}
+  \renewcommand\afterchaptertitle{\par\nobreak\vskip \afterchapskip}
+}
+\makeatother
+\chapterstyle{GreyNum}
+
+\setcounter{tocdepth}{3}
+\setsecnumdepth{subsubsection}
+
+\renewcommand{\ttdefault}{lmtt}
+
+
+% NEW COLORS
+\definecolor{dark}{gray}{0.25}
+\definecolor{lgray}{gray}{0.9}
+\definecolor{dkblue}{rgb}{0,0.13,0.4}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  language=Java,                   basicstyle=\footnotesize\ttfamily,
+  numbers=left,                    numberstyle=\tiny\color{gray},
+  stepnumber=1,                    numbersep=5pt,
+  backgroundcolor=\color{white},   showspaces=false,
+  showstringspaces=false,          showtabs=false,
+  frame=single,                    rulecolor=\color{black},
+  tabsize=2,                       captionpos=b,
+  breaklines=true,                 breakatwhitespace=false,
+  title=\lstname,                  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},    stringstyle=\color{mauve},
+  escapeinside={\%*}{*)},          morekeywords={*,const,let,async,await,import,from,export,default},
+  belowskip=0cm
+}
+
+\renewcommand{\lstlistingname}{Excerto de Código}
+\renewcommand{\lstlistlistingname}{Lista de Excertos de Código}
+
+\renewcommand{\today}{\day \ifcase \month \or Janeiro\or Fevereiro\or Março\or %
+Abril\or Maio\or Junho\or Julho\or Agosto\or Setembro\or Outubro\or Novembro\or %
+Dezembro\fi de \number \year}
+
+
+
+\begin{document}
+
+\include{capa}
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\frontmatter
+
+\include{agradecimentos}
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\include{resumo}
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\tableofcontents
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\listoffigures
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\listoftables
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\lstlistoflistings
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{acronimos}
+
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\mainmatter
+\acresetall
+\include{introducao}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{estado-da-arte}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{analise-requisitos}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{arquitetura-design}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{implementacao}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{testes-avaliacao}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+\include{conc-trab-futuro}
+\clearpage{\thispagestyle{empty}\cleardoublepage}
+
+\backmatter
+
+\bibliographystyle{unsrt}
+\bibliography{bibliografia}
+
+\end{document}

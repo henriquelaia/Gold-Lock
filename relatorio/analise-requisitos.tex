@@ -1,0 +1,253 @@
+\chapter{Análise de Requisitos}
+\label{chap:requisitos}
+
+\section{Introdução}
+\label{sec:req-intro}
+
+Este capítulo apresenta a análise de requisitos do sistema, incluindo os requisitos funcionais (RF) e não-funcionais (RNF), organizados por módulo. A priorização segue a metodologia MoSCoW (\textit{Must, Should, Could, Won't}), permitindo uma gestão eficaz do âmbito do projeto ao longo dos sprints de desenvolvimento.
+
+
+\section{Requisitos Funcionais}
+\label{sec:req-funcionais}
+
+Os requisitos funcionais estão organizados em sete módulos, correspondentes às principais áreas funcionais do sistema.
+
+\subsection{Módulo 1 --- Autenticação e Gestão de Utilizadores}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de autenticação.}
+\label{tab:rf-auth}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF01 & O sistema deve permitir registo com email e password & Must & 3 \\
+RF02 & O sistema deve suportar login via OAuth2 (Google) & Must & 3 \\
+RF03 & O sistema deve implementar autenticação \ac{2FA} (TOTP) & Should & 3 \\
+RF04 & O utilizador deve poder editar o seu perfil (nome, avatar, moeda) & Must & 3 \\
+RF05 & O sistema deve permitir recuperação de password por email & Must & 3 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 2 --- Open Banking e Contas}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de Open Banking.}
+\label{tab:rf-openbanking}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF06 & O sistema deve ligar contas bancárias via Salt Edge \ac{API} & Must & 4 \\
+RF07 & O sistema deve importar transações automaticamente (até 12 meses) & Must & 4 \\
+RF08 & O sistema deve mostrar saldos atualizados de todas as contas & Must & 4 \\
+RF09 & O utilizador deve poder desligar uma conta a qualquer momento & Must & 4 \\
+RF10 & O sistema deve sincronizar transações periodicamente (mín. 1x/dia) & Should & 5 \\
+RF11 & O sistema deve suportar pelo menos 3 bancos PT (CGD, BCP, Santander) & Must & 4 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 3 --- Dashboard e Visualização}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de dashboard.}
+\label{tab:rf-dashboard}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF12 & O dashboard deve mostrar saldo total agregado de todas as contas & Must & 5 \\
+RF13 & O dashboard deve exibir gráfico de gastos por categoria & Must & 5 \\
+RF14 & O dashboard deve mostrar evolução de saldo ao longo do tempo & Must & 5 \\
+RF15 & O dashboard deve listar as últimas transações com pesquisa e filtros & Must & 5 \\
+RF16 & O sistema deve gerar um relatório mensal automático & Should & 8 \\
+RF17 & O utilizador deve poder exportar dados em CSV & Could & 8 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 4 --- Categorização com IA}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de categorização com IA.}
+\label{tab:rf-ia}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF18 & O sistema deve categorizar transações automaticamente com \ac{ML} & Must & 6 \\
+RF19 & O utilizador deve poder corrigir categorias manualmente & Must & 6 \\
+RF20 & O modelo \ac{ML} deve aprender com as correções do utilizador & Should & 6 \\
+RF21 & O sistema deve ter categorias pré-definidas para o mercado PT & Must & 6 \\
+RF22 & O sistema deve detetar transações recorrentes (subscrições, salário) & Should & 6 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 5 --- Orçamentos e Metas}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de orçamentos e metas.}
+\label{tab:rf-budgets}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF23 & O utilizador deve poder definir orçamentos mensais por categoria & Must & 6 \\
+RF24 & O sistema deve alertar quando um orçamento atinge 80\% e 100\% & Must & 6 \\
+RF25 & O utilizador deve poder criar metas de poupança com valor alvo e prazo & Must & 7 \\
+RF26 & O sistema deve mostrar progresso visual das metas & Must & 7 \\
+RF27 & O sistema deve sugerir montantes de poupança com base no histórico & Could & 7 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 6 --- Simulador IRS}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de simulação IRS.}
+\label{tab:rf-irs}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF28 & O sistema deve calcular \ac{IRS} estimado com base nos rendimentos & Must & 7 \\
+RF29 & O simulador deve suportar rendimentos de Categoria A & Must & 7 \\
+RF30 & O simulador deve considerar deduções básicas (saúde, educação, habitação) & Must & 7 \\
+RF31 & O sistema deve alertar sobre deduções que o utilizador pode estar a perder & Should & 7 \\
+RF32 & O simulador deve comparar \ac{IRS} conjunto e separado (casais) & Could & 7 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 7 --- Notificações}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de notificações.}
+\label{tab:rf-notif}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF33 & O sistema deve enviar notificações por email para alertas de orçamento & Should & 8 \\
+RF34 & O sistema deve notificar sobre transações invulgares & Could & 8 \\
+RF35 & O sistema deve enviar alertas sazonais (prazo IRS, IMI, IUC) & Could & 8 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Requisitos Não-Funcionais}
+\label{sec:req-nao-funcionais}
+
+\subsection{Performance}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não-funcionais de performance.}
+\label{tab:rnf-perf}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Métrica} \\
+\midrule
+RNF01 & Tempo de carregamento da página inicial & $< 2$ segundos \\
+RNF02 & Tempo de resposta das \ac{API}s & $< 500$ms (p95) \\
+RNF03 & Suporte de utilizadores simultâneos & Mínimo 100 \\
+RNF04 & Taxa de frames na \ac{UI} (scroll, animações) & $> 55$ FPS \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Segurança}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não-funcionais de segurança.}
+\label{tab:rnf-seg}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Métrica} \\
+\midrule
+RNF05 & Encriptação de dados em trânsito & \ac{TLS} 1.3 \\
+RNF06 & Encriptação de dados sensíveis em repouso & AES-256 \\
+RNF07 & Conformidade com \ac{RGPD} & Consentimento explícito \\
+RNF08 & Proteção contra \ac{OWASP} Top 10 & Auditoria pré-release \\
+RNF09 & Rate limiting nas \ac{API}s & Máx. 100 req/min \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Usabilidade}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não-funcionais de usabilidade.}
+\label{tab:rnf-usab}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Métrica} \\
+\midrule
+RNF10 & Pontuação \ac{SUS} & $> 70$ (``Good'') \\
+RNF11 & Acessibilidade \ac{WCAG} & Nível AA \\
+RNF12 & Suporte de browsers & Chrome, Firefox, Safari, Edge \\
+RNF13 & Design responsivo & 375px a 2560px \\
+RNF14 & Contraste sobre glass effects & Rácio mín. 4.5:1 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Fiabilidade e IA}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não-funcionais de fiabilidade e IA.}
+\label{tab:rnf-fiab}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Métrica} \\
+\midrule
+RNF15 & Disponibilidade do sistema & $> 99\%$ \\
+RNF16 & Cobertura de testes unitários & $> 70\%$ \\
+RNF17 & Backup de dados & Diário, automático \\
+RNF18 & Precisão da categorização automática & $> 80\%$ accuracy \\
+RNF19 & Precisão do simulador \ac{IRS} & 10 cenários validados \\
+RNF20 & Tempo de categorização por transação & $< 200$ms \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Diagrama de Casos de Uso}
+\label{sec:req-casos-uso}
+
+A Figura~\ref{fig:casos-uso} apresenta o diagrama de casos de uso principal do sistema, identificando os atores e as funcionalidades principais.
+
+% NOTA: O diagrama será gerado com TikZ - ver ficheiro diagramas/casos-uso.tex
+\begin{figure}[H]
+\centering
+\input{diagramas/casos-uso}
+\caption{Diagrama de casos de uso do sistema FinTwin.}
+\label{fig:casos-uso}
+\end{figure}
+
+
+\section{Conclusões}
+\label{sec:req-conclusoes}
+
+A análise de requisitos resultou na identificação de 35 requisitos funcionais e 20 requisitos não-funcionais, organizados em 7 módulos funcionais. A priorização MoSCoW permite focar o desenvolvimento nos requisitos \textit{Must} durante as primeiras sprints, garantindo a entrega de um \ac{MVP} funcional, enquanto os requisitos \textit{Should} e \textit{Could} são implementados progressivamente conforme a disponibilidade de tempo.

@@ -1,0 +1,122 @@
+\chapter{Arquitetura e Design}
+\label{chap:arquitetura}
+
+\section{Introdução}
+\label{sec:arq-intro}
+
+Este capítulo descreve as decisões arquiteturais e de design tomadas para o desenvolvimento da plataforma FinTwin. São apresentados a arquitetura geral do sistema, o diagrama de componentes, o modelo de dados, o diagrama de classes e as decisões relativas ao design da interface.
+
+
+\section{Visão Geral da Arquitetura}
+\label{sec:arq-visao}
+
+A plataforma segue uma arquitetura de microserviços, dividida em três camadas principais: camada de apresentação (frontend), camada de lógica de negócio (backend/\ac{API}) e camada de dados. A Figura~\ref{fig:arquitetura-componentes} apresenta o diagrama de componentes do sistema.
+
+\begin{figure}[H]
+\centering
+\input{diagramas/componentes}
+\caption{Diagrama de componentes da arquitetura do sistema.}
+\label{fig:arquitetura-componentes}
+\end{figure}
+
+
+\section{Stack Tecnológica}
+\label{sec:arq-stack}
+
+A Tabela~\ref{tab:stack} apresenta as tecnologias selecionadas para cada camada do sistema, juntamente com a respetiva justificação.
+
+\begin{table}[H]
+\centering
+\caption{Stack tecnológica do sistema FinTwin.}
+\label{tab:stack}
+\small
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Camada} & \textbf{Tecnologia} & \textbf{Justificação} \\
+\midrule
+Frontend Web & React 18 + TypeScript + TailwindCSS & Ecossistema maduro, tipagem forte, grande comunidade \\
+Animações & Framer Motion & Necessário para efeitos Liquid Glass performantes \\
+Backend & Node.js + Express + TypeScript & Stack unificada JS/TS, vasto ecossistema fintech \\
+Base de Dados & PostgreSQL & Robusto, relacional, ideal para dados financeiros \\
+Cache & Redis & Sessões, rate limiting, cache de dados Open Banking \\
+IA/ML & Python (scikit-learn) + OpenAI \ac{API} & Classificação + sugestões conversacionais \\
+Open Banking & Salt Edge \ac{API} & Cobertura PT, sandbox gratuita, boa documentação \\
+Autenticação & Supabase Auth & \ac{OAuth}2, \ac{2FA}, tier gratuito generoso \\
+Containerização & Docker + Docker Compose & Ambiente reproduzível, isolamento de serviços, parity dev/prod \\
+Deploy & Railway ou Render & Deploy simples, tier gratuito para \ac{MVP} \\
+CI/CD & GitHub Actions & Automatização integrada com repositório \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Modelo de Dados}
+\label{sec:arq-modelo-dados}
+
+O modelo de dados foi desenhado em PostgreSQL, priorizando a integridade referencial e a normalização dos dados financeiros. A Figura~\ref{fig:modelo-er} apresenta o diagrama Entidade-Relacionamento do sistema.
+
+\begin{figure}[H]
+\centering
+\input{diagramas/modelo-er}
+\caption{Diagrama Entidade-Relacionamento do sistema FinTwin.}
+\label{fig:modelo-er}
+\end{figure}
+
+As principais entidades do modelo são:
+
+\begin{itemize}
+    \item \textbf{User:} Armazena informação do utilizador, incluindo credenciais e preferências.
+    \item \textbf{BankAccount:} Representa uma conta bancária ligada via Open Banking, com referência à conexão Salt Edge.
+    \item \textbf{Transaction:} Regista cada transação importada, incluindo descrição, montante, data e categoria.
+    \item \textbf{Category:} Define as categorias de gastos, incluindo categorias pré-definidas para o mercado português.
+    \item \textbf{Budget:} Armazena os orçamentos mensais definidos pelo utilizador por categoria.
+    \item \textbf{SavingsGoal:} Representa as metas de poupança com valor alvo, prazo e progresso.
+    \item \textbf{IRSSimulation:} Guarda os parâmetros e resultados das simulações de \ac{IRS}.
+\end{itemize}
+
+
+\section{Diagrama de Classes}
+\label{sec:arq-classes}
+
+A Figura~\ref{fig:diagrama-classes} apresenta o diagrama de classes simplificado do sistema, focando nas classes principais do domínio.
+
+\begin{figure}[H]
+\centering
+\input{diagramas/classes}
+\caption{Diagrama de classes do sistema FinTwin.}
+\label{fig:diagrama-classes}
+\end{figure}
+
+
+\section{Diagrama de Sequência}
+\label{sec:arq-sequencia}
+
+A Figura~\ref{fig:sequencia-openbanking} ilustra o diagrama de sequência para o fluxo de ligação de uma conta bancária via Open Banking, que constitui uma das interações mais críticas do sistema.
+
+\begin{figure}[H]
+\centering
+\input{diagramas/sequencia-openbanking}
+\caption{Diagrama de sequência: ligação de conta bancária via Open Banking.}
+\label{fig:sequencia-openbanking}
+\end{figure}
+
+
+\section{Design da Interface --- Liquid Glass}
+\label{sec:arq-design}
+
+O design da interface segue o paradigma Liquid Glass, inspirado nas guidelines do iOS 26, adaptado ao contexto de uma aplicação financeira web. Os princípios fundamentais são:
+
+\begin{enumerate}
+    \item \textbf{Transparência e profundidade:} Utilização de efeitos de vidro fosco (\textit{backdrop-filter: blur}) em cards e painéis, criando sensação de profundidade e hierarquia visual.
+    \item \textbf{Fluidez:} Animações suaves e responsivas implementadas com Framer Motion, priorizando 60 FPS em todas as interações.
+    \item \textbf{Acessibilidade:} Cumprimento do nível AA das \ac{WCAG}, com rácio de contraste mínimo de 4.5:1 sobre efeitos de vidro.
+    \item \textbf{Modo claro e escuro:} Suporte nativo a ambos os modos, com transição fluída entre eles.
+\end{enumerate}
+
+% TODO: Adicionar screenshots/mockups do Figma quando disponíveis
+
+
+\section{Conclusões}
+\label{sec:arq-conclusoes}
+
+A arquitetura proposta garante a separação clara de responsabilidades, a escalabilidade do sistema e a facilidade de manutenção. A escolha de uma stack unificada em TypeScript (frontend e backend) reduz a complexidade do desenvolvimento, enquanto a utilização de Python para o módulo de \ac{ML} permite tirar partido do ecossistema científico da linguagem. O design Liquid Glass diferencia a plataforma visualmente dos concorrentes, contribuindo para uma experiência de utilizador premium.

@@ -1,0 +1,59 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+
+import { authRouter } from './routes/auth.js';
+import { accountsRouter } from './routes/accounts.js';
+import { transactionsRouter } from './routes/transactions.js';
+import { budgetsRouter } from './routes/budgets.js';
+import { irsRouter } from './routes/irs.js';
+import { categoriesRouter } from './routes/categories.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { rateLimiter } from './middleware/rateLimiter.js';
+import './config/database.js';  // inicializar pool PostgreSQL
+import './config/redis.js';     // inicializar cliente Redis
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// ── Middleware Global ──
+app.use(helmet());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}));
+app.use(morgan('dev'));
+app.use(express.json({ limit: '10mb' }));
+app.use(rateLimiter);
+
+// ── Health Check ──
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'fintwin-backend',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ── Rotas ──
+app.use('/api/auth', authRouter);
+app.use('/api/accounts', accountsRouter);
+app.use('/api/transactions', transactionsRouter);
+app.use('/api/budgets', budgetsRouter);
+app.use('/api/irs', irsRouter);
+app.use('/api/categories', categoriesRouter);
+
+// ── Error Handler ──
+app.use(errorHandler);
+
+// ── Start Server ──
+app.listen(PORT, () => {
+  console.log(`🚀 FinTwin Backend running on http://localhost:${PORT}`);
+  console.log(`📋 Health check: http://localhost:${PORT}/api/health`);
+});
+
+export default app;

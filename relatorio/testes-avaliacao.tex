@@ -1,0 +1,118 @@
+\chapter{Testes e Avaliação}
+\label{chap:testes}
+
+\section{Introdução}
+\label{sec:test-intro}
+
+Este capítulo descreve os testes realizados para avaliar o sistema FinTwin em três dimensões: usabilidade (testes com utilizadores reais), performance técnica e precisão do módulo de \ac{ML}. A avaliação segue as métricas definidas nos requisitos não-funcionais (Secção~\ref{sec:req-nao-funcionais}).
+
+% TODO: Preencher com resultados reais após os testes (Sprints 9-10)
+
+
+\section{Testes de Usabilidade}
+\label{sec:test-usabilidade}
+
+\subsection{Metodologia}
+
+Os testes de usabilidade foram conduzidos com um grupo de 10 a 15 participantes, recrutados entre colegas da \ac{UBI}, familiares e amigos. Cada sessão de teste incluiu:
+
+\begin{enumerate}
+    \item Breve introdução ao sistema (2 minutos)
+    \item Execução de 5 a 7 tarefas predefinidas
+    \item Preenchimento do questionário \ac{SUS} (System Usability Scale)
+    \item Entrevista breve sobre a experiência (5 minutos)
+\end{enumerate}
+
+\subsection{Tarefas de Teste}
+
+As tarefas definidas para os testes de usabilidade foram:
+
+\begin{enumerate}
+    \item Registar uma conta e completar o onboarding
+    \item Ligar uma conta bancária (ambiente sandbox)
+    \item Consultar o saldo total e os gastos por categoria no dashboard
+    \item Corrigir a categoria de uma transação
+    \item Criar um orçamento mensal para a categoria ``Restauração''
+    \item Definir uma meta de poupança
+    \item Executar uma simulação de \ac{IRS}
+\end{enumerate}
+
+\subsection{Resultados SUS}
+
+% TODO: Preencher com resultados reais
+\begin{table}[H]
+\centering
+\caption{Resultados do questionário SUS (a preencher).}
+\label{tab:sus-results}
+\begin{tabularx}{\textwidth}{l c c c}
+\toprule
+\textbf{Métrica} & \textbf{Objetivo} & \textbf{Resultado} & \textbf{Avaliação} \\
+\midrule
+Pontuação SUS média & $> 70$ & --- & --- \\
+Tempo médio por tarefa & $< 30$s & --- & --- \\
+Taxa de sucesso de tarefas & $> 85\%$ & --- & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Testes de Performance}
+\label{sec:test-performance}
+
+Os testes de performance foram realizados utilizando Lighthouse (Google Chrome) para métricas de frontend e ferramentas de load testing para o backend.
+
+% TODO: Preencher com resultados reais
+\begin{table}[H]
+\centering
+\caption{Resultados dos testes de performance (a preencher).}
+\label{tab:perf-results}
+\begin{tabularx}{\textwidth}{l c c c}
+\toprule
+\textbf{Métrica} & \textbf{Objetivo} & \textbf{Resultado} & \textbf{Avaliação} \\
+\midrule
+Tempo de carregamento inicial & $< 2$s & --- & --- \\
+Tempo de resposta \ac{API} (p95) & $< 500$ms & --- & --- \\
+FPS nas animações & $> 55$ FPS & --- & --- \\
+Lighthouse Performance Score & $> 90$ & --- & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Avaliação do Modelo de ML}
+\label{sec:test-ml}
+
+A avaliação do modelo de categorização automática de transações foi realizada com um dataset de teste separado do dataset de treino.
+
+% TODO: Preencher com resultados reais
+\begin{table}[H]
+\centering
+\caption{Métricas de avaliação do modelo de ML (a preencher).}
+\label{tab:ml-results}
+\begin{tabularx}{\textwidth}{l c c c}
+\toprule
+\textbf{Métrica} & \textbf{Objetivo} & \textbf{Resultado} & \textbf{Avaliação} \\
+\midrule
+Accuracy & $> 80\%$ & --- & --- \\
+Precision (macro) & $> 75\%$ & --- & --- \\
+Recall (macro) & $> 75\%$ & --- & --- \\
+F1-Score (macro) & $> 75\%$ & --- & --- \\
+Tempo por transação & $< 200$ms & --- & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Validação do Simulador IRS}
+\label{sec:test-irs}
+
+O simulador de \ac{IRS} foi validado contra 10 cenários fiscais reais com resultados conhecidos, cobrindo diferentes escalões de rendimento, estados civis e tipos de deduções.
+
+% TODO: Tabela com cenários de teste e resultados
+
+
+\section{Conclusões}
+\label{sec:test-conclusoes}
+
+% TODO: Preencher após a realização dos testes
+Os resultados dos testes serão analisados nesta secção, identificando os pontos fortes e as áreas de melhoria do sistema.

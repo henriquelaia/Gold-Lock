@@ -1,0 +1,237 @@
+\chapter{Implementação}
+\label{chap:implementacao}
+
+\section{Introdução}
+\label{sec:impl-intro}
+
+Este capítulo descreve os detalhes técnicos da implementação dos principais módulos do sistema FinTwin. Para cada módulo, são apresentadas as decisões de implementação, os excertos de código mais relevantes e os desafios encontrados.
+
+% TODO: Preencher com os detalhes reais da implementação à medida que o desenvolvimento avança
+
+
+\section{Configuração do Ambiente de Desenvolvimento}
+\label{sec:impl-setup}
+
+O ambiente de desenvolvimento foi configurado com as seguintes ferramentas:
+
+\begin{itemize}
+    \item \textbf{IDE:} Visual Studio Code com extensões para TypeScript, ESLint e Prettier
+    \item \textbf{Controlo de versões:} Git com repositório no GitHub
+    \item \textbf{Gestão de pacotes:} npm (Node.js) e pip (Python)
+    \item \textbf{Containerização:} Docker + Docker Compose para orquestração local de todos os serviços
+    \item \textbf{CI/CD:} GitHub Actions para testes automáticos e deploy
+\end{itemize}
+
+\subsection{Ambiente Docker}
+\label{sec:impl-docker}
+
+O desenvolvimento utiliza Docker e Docker Compose para garantir um ambiente reproduzível e isolado. Cada componente do sistema corre no seu próprio container, eliminando problemas de dependências e facilitando o onboarding de novos desenvolvedores. A orquestração local é gerida por um ficheiro \texttt{docker-compose.yml} que define os seguintes serviços:
+
+\begin{itemize}
+    \item \textbf{frontend:} Container Node.js com React 18 + TypeScript, hot-reload via Vite
+    \item \textbf{backend:} Container Node.js com Express + TypeScript, restart automático com nodemon
+    \item \textbf{ml-service:} Container Python com Flask + scikit-learn para servir o modelo de categorização
+    \item \textbf{postgres:} Container PostgreSQL 16 com volume persistente para dados
+    \item \textbf{redis:} Container Redis para cache e gestão de sessões
+\end{itemize}
+
+Esta abordagem garante a paridade entre o ambiente de desenvolvimento e produção (\textit{dev/prod parity}), um dos princípios da metodologia \textit{Twelve-Factor App}~\cite{12factor}.
+
+\begin{lstlisting}[caption={Excerto do ficheiro docker-compose.yml.},label={lst:docker}]
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    volumes: ["./frontend/src:/app/src"]
+    depends_on: [backend]
+
+  backend:
+    build: ./backend
+    ports: ["4000:4000"]
+    environment:
+      DATABASE_URL: postgres://user:pass@postgres:5432/fintwin
+      REDIS_URL: redis://redis:6379
+    depends_on: [postgres, redis]
+
+  ml-service:
+    build: ./ml-service
+    ports: ["5000:5000"]
+    depends_on: [postgres]
+
+  postgres:
+    image: postgres:16-alpine
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    environment:
+      POSTGRES_DB: fintwin
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+volumes:
+  pgdata:
+\end{lstlisting}
+
+A estrutura do projeto segue uma organização por módulos:
+
+\begin{lstlisting}[caption={Estrutura de diretórios do projeto.},label={lst:structure}]
+fintwin/
+  docker-compose.yml # Orquestracao de todos os servicos
+  frontend/          # React + TypeScript
+    Dockerfile
+    src/
+      components/    # Componentes reutilizaveis
+      pages/         # Paginas da aplicacao
+      hooks/         # Custom hooks
+      services/      # Chamadas API
+      store/         # Estado global (Zustand)
+  backend/           # Node.js + Express
+    Dockerfile
+    src/
+      routes/        # Endpoints da API
+      controllers/   # Logica de negocio
+      models/        # Modelos de dados
+      middleware/     # Autenticacao, rate limiting
+      services/      # Integracao Salt Edge, ML
+  ml-service/        # Python (scikit-learn)
+    Dockerfile
+    models/          # Modelos treinados
+    training/        # Scripts de treino
+    api/             # API Flask para servir modelos
+  database/
+    migrations/      # Migrations SQL
+    seeds/           # Dados de teste
+\end{lstlisting}
+
+
+\section{Módulo de Autenticação}
+\label{sec:impl-auth}
+
+A autenticação foi implementada utilizando o Supabase Auth, que fornece suporte nativo para \ac{OAuth}2, \ac{JWT} e \ac{2FA}. O fluxo de autenticação inclui:
+
+\begin{enumerate}
+    \item Registo com email e password (com verificação por email)
+    \item Login via Google OAuth2
+    \item Gestão de sessões com \ac{JWT} e refresh tokens
+    \item Autenticação de dois fatores opcional (TOTP)
+\end{enumerate}
+
+% TODO: Adicionar excertos de código reais quando implementados
+
+\begin{lstlisting}[caption={Exemplo de configuração do Supabase Auth (simplificado).},label={lst:auth},language=Java]
+// services/auth.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+)
+
+export const signUp = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
+  return { data, error }
+}
+
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+  })
+  return { data, error }
+}
+\end{lstlisting}
+
+
+\section{Módulo de Open Banking}
+\label{sec:impl-openbanking}
+
+A integração Open Banking foi implementada utilizando a \ac{API} Salt Edge. O processo de ligação de uma conta bancária segue o fluxo descrito na Secção~\ref{sec:arq-sequencia}:
+
+\begin{enumerate}
+    \item O utilizador seleciona o seu banco na interface
+    \item O backend cria uma sessão de conexão na Salt Edge
+    \item O utilizador é redirecionado para a página de autenticação do banco
+    \item Após autenticação, a Salt Edge notifica o backend via webhook
+    \item O backend importa as transações e saldos
+\end{enumerate}
+
+% TODO: Adicionar excertos de código reais da integração Salt Edge
+
+
+\section{Módulo de Categorização com ML}
+\label{sec:impl-ml}
+
+O módulo de categorização automática utiliza um pipeline de \ac{ML} implementado com scikit-learn:
+
+\begin{enumerate}
+    \item \textbf{Pré-processamento:} Limpeza e normalização do texto das transações (remoção de caracteres especiais, lowercase, tokenização).
+    \item \textbf{Vetorização:} Transformação do texto em vetores numéricos utilizando TF-IDF (Term Frequency-Inverse Document Frequency).
+    \item \textbf{Classificação:} Modelo Random Forest treinado com dados de transações portuguesas categorizadas manualmente.
+    \item \textbf{Aprendizagem contínua:} Quando o utilizador corrige uma categorização, a correção é armazenada e utilizada para re-treinar o modelo periodicamente.
+\end{enumerate}
+
+% TODO: Adicionar código real do pipeline ML
+
+\begin{lstlisting}[caption={Pipeline de categorização (simplificado).},label={lst:ml},language=Python]
+# ml-service/training/categorizer.py
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+
+# Pipeline de categorizacao
+pipeline = Pipeline([
+    ('tfidf', TfidfVectorizer(
+        max_features=5000,
+        ngram_range=(1, 2)
+    )),
+    ('clf', RandomForestClassifier(
+        n_estimators=100,
+        random_state=42
+    ))
+])
+
+# Categorias portuguesas pre-definidas
+CATEGORIAS_PT = [
+    'Supermercado', 'Restauracao', 'Transportes',
+    'Portagens', 'Combustivel', 'Saude',
+    'Educacao', 'Habitacao', 'Lazer',
+    'Vestuario', 'Telecomunicacoes', 'Seguros',
+    'Transferencias', 'Salario', 'Outros'
+]
+\end{lstlisting}
+
+
+\section{Módulo Dashboard e Interface Liquid Glass}
+\label{sec:impl-dashboard}
+
+O dashboard foi implementado em React 18 com TypeScript, utilizando TailwindCSS para estilização e Recharts para gráficos. Os efeitos Liquid Glass foram implementados com CSS \texttt{backdrop-filter} e animações com Framer Motion.
+
+% TODO: Adicionar screenshots e código real do dashboard
+
+
+\section{Módulo Simulador IRS}
+\label{sec:impl-irs}
+
+O simulador de \ac{IRS} implementa as regras fiscais portuguesas vigentes para o ano fiscal de 2025/2026. O motor de cálculo é determinístico (baseado em regras), sem utilização de \ac{IA} generativa, garantindo a precisão dos resultados.
+
+As funcionalidades implementadas incluem:
+\begin{itemize}
+    \item Cálculo de \ac{IRS} para rendimentos de Categoria A (trabalho dependente)
+    \item Aplicação dos escalões de \ac{IRS} em vigor
+    \item Cálculo de deduções à coleta (saúde, educação, habitação, encargos gerais familiares)
+    \item Comparação entre tributação conjunta e separada (casais)
+\end{itemize}
+
+% TODO: Adicionar tabela de escalões e código do simulador
+
+
+\section{Conclusões}
+\label{sec:impl-conclusoes}
+
+% TODO: Atualizar com conclusões reais após a implementação
+A implementação do sistema seguiu o plano de sprints definido na Secção~\ref{sec:metodologia}, com entregas incrementais a cada duas semanas. Os principais desafios encontrados durante a implementação serão documentados nesta secção após a conclusão do desenvolvimento.

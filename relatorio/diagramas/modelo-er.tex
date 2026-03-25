@@ -1,0 +1,135 @@
+% Diagrama Entidade-Relacionamento - FinTwin (v3 - sem sobreposições)
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    entitybox/.style={draw, rectangle, rounded corners=2pt, minimum width=4.2cm, fill=blue!5, draw=blue!40, inner sep=6pt, font=\small},
+    >=Stealth
+]
+
+% === LINHA 1 (topo) ===
+% User (esquerda)
+\node[entitybox] (user) at (0, 0) {
+    \begin{tabular}{l}
+    \textbf{User} \\
+    \midrule
+    \underline{id}: UUID \\
+    email: VARCHAR \\
+    name: VARCHAR \\
+    avatar\_url: TEXT \\
+    currency: CHAR(3) \\
+    created\_at: TIMESTAMP
+    \end{tabular}
+};
+
+% BankAccount (centro)
+\node[entitybox] (bank) at (8.5, 0) {
+    \begin{tabular}{l}
+    \textbf{BankAccount} \\
+    \midrule
+    \underline{id}: UUID \\
+    user\_id: UUID (FK) \\
+    bank\_name: VARCHAR \\
+    iban: VARCHAR \\
+    balance: DECIMAL \\
+    saltedge\_id: VARCHAR \\
+    last\_sync: TIMESTAMP
+    \end{tabular}
+};
+
+% Transaction (direita)
+\node[entitybox] (trans) at (17, 0) {
+    \begin{tabular}{l}
+    \textbf{Transaction} \\
+    \midrule
+    \underline{id}: UUID \\
+    account\_id: UUID (FK) \\
+    category\_id: UUID (FK) \\
+    description: TEXT \\
+    amount: DECIMAL \\
+    date: DATE \\
+    is\_recurring: BOOLEAN \\
+    ml\_confidence: FLOAT
+    \end{tabular}
+};
+
+% === LINHA 2 (meio) - com mais espaço vertical ===
+% Budget (esquerda)
+\node[entitybox] (budget) at (0, -8.5) {
+    \begin{tabular}{l}
+    \textbf{Budget} \\
+    \midrule
+    \underline{id}: UUID \\
+    user\_id: UUID (FK) \\
+    category\_id: UUID (FK) \\
+    amount\_limit: DECIMAL \\
+    month: DATE \\
+    alert\_threshold: INT
+    \end{tabular}
+};
+
+% SavingsGoal (centro) - afastado do Budget
+\node[entitybox] (goal) at (8.5, -8.5) {
+    \begin{tabular}{l}
+    \textbf{SavingsGoal} \\
+    \midrule
+    \underline{id}: UUID \\
+    user\_id: UUID (FK) \\
+    name: VARCHAR \\
+    target\_amount: DECIMAL \\
+    current\_amount: DECIMAL \\
+    deadline: DATE
+    \end{tabular}
+};
+
+% Category (direita)
+\node[entitybox] (cat) at (17, -8.5) {
+    \begin{tabular}{l}
+    \textbf{Category} \\
+    \midrule
+    \underline{id}: UUID \\
+    name: VARCHAR \\
+    icon: VARCHAR \\
+    color: VARCHAR \\
+    is\_default: BOOLEAN
+    \end{tabular}
+};
+
+% === LINHA 3 (baixo) ===
+% IRSSimulation (centro)
+\node[entitybox] (irs) at (8.5, -16) {
+    \begin{tabular}{l}
+    \textbf{IRSSimulation} \\
+    \midrule
+    \underline{id}: UUID \\
+    user\_id: UUID (FK) \\
+    income: DECIMAL \\
+    deductions: JSONB \\
+    tax\_result: DECIMAL \\
+    simulation\_date: DATE
+    \end{tabular}
+};
+
+% === RELAÇÕES - setas claras sem sobreposição ===
+
+% User -> BankAccount (horizontal, topo)
+\draw[->, thick] (user.east) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {1 : N} (bank.west);
+
+% BankAccount -> Transaction (horizontal, topo)
+\draw[->, thick] (bank.east) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {1 : N} (trans.west);
+
+% Transaction -> Category (vertical, direita)
+\draw[->, thick] (trans.south) -- node[right, font=\scriptsize, fill=white, inner sep=2pt] {N : 1} (cat.north);
+
+% User -> Budget (vertical, esquerda) - seta direta pela esquerda
+\draw[->, thick] (user.south) -- node[left, font=\scriptsize, fill=white, inner sep=2pt] {1 : N} (budget.north);
+
+% Category -> Budget (horizontal, baixo)
+\draw[->, thick] (cat.west) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {1 : N} (budget.east);
+
+% User -> SavingsGoal - seta pela direita do User, descendo, sem cruzar Budget
+\draw[->, thick] (user.south east) -- ++(1.5, 0) -- ++(0, -4.5) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {1 : N} (goal.north west);
+
+% User -> IRSSimulation - seta pelo centro, descendo
+\draw[->, thick] (goal.south) -- node[right, font=\scriptsize, fill=white, inner sep=2pt] {User 1 : N} (irs.north);
+
+\end{tikzpicture}%
+}

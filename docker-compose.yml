@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # ──────────────────────────────────────────
+  # Frontend — React 18 + TypeScript + Vite
+  # ──────────────────────────────────────────
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+    depends_on:
+      - backend
+    networks:
+      - fintwin-network
+
+  # ──────────────────────────────────────────
+  # Backend — Node.js + Express + TypeScript
+  # ──────────────────────────────────────────
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./src/backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_URL=postgresql://fintwin:fintwin_dev@postgres:5432/fintwin_db
+      - REDIS_URL=redis://redis:6379
+      - SALT_EDGE_APP_ID=${SALT_EDGE_APP_ID}
+      - SALT_EDGE_SECRET=${SALT_EDGE_SECRET}
+      - ML_SERVICE_URL=http://ml-service:5000
+      - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_change_me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fintwin-network
+
+  # ──────────────────────────────────────────
+  # ML Service — Python + scikit-learn + Flask
+  # ──────────────────────────────────────────
+  ml-service:
+    build:
+      context: ./src/ml-service
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./src/ml-service:/app
+      - ml-models:/app/models
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://fintwin:fintwin_dev@postgres:5432/fintwin_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fintwin-network
+
+  # ──────────────────────────────────────────
+  # PostgreSQL 16
+  # ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=fintwin_db
+      - POSTGRES_USER=fintwin
+      - POSTGRES_PASSWORD=fintwin_dev
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/backend/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fintwin -d fintwin_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fintwin-network
+
+  # ──────────────────────────────────────────
+  # Redis 7
+  # ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fintwin-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  ml-models:
+
+networks:
+  fintwin-network:
+    driver: bridge

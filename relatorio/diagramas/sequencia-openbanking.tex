@@ -1,0 +1,47 @@
+% Diagrama de Sequência - Ligação Open Banking (corrigido - sem cortes)
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    >=Stealth,
+    participant/.style={draw, rectangle, minimum width=2.2cm, minimum height=0.8cm, font=\small\bfseries, fill=#1!10, draw=#1!50},
+    msg/.style={->, thick},
+    rmsg/.style={->, thick, dashed},
+    note/.style={draw, rectangle, rounded corners=2pt, fill=yellow!20, font=\scriptsize, text width=2.8cm, align=center}
+]
+
+% Participantes (mais compactos horizontalmente)
+\node[participant=blue] (user) at (0, 0) {Utilizador};
+\node[participant=green] (frontend) at (3.5, 0) {Frontend};
+\node[participant=green] (backend) at (7, 0) {Backend API};
+\node[participant=purple] (saltedge) at (10.5, 0) {Salt Edge};
+\node[participant=red] (banco) at (14, 0) {Banco};
+
+% Lifelines
+\draw[dashed, gray] (0, -0.4) -- (0, -16);
+\draw[dashed, gray] (3.5, -0.4) -- (3.5, -16);
+\draw[dashed, gray] (7, -0.4) -- (7, -16);
+\draw[dashed, gray] (10.5, -0.4) -- (10.5, -16);
+\draw[dashed, gray] (14, -0.4) -- (14, -16);
+
+% Mensagens - espaçadas uniformemente
+\draw[msg] (0, -1) -- node[above, font=\scriptsize] {1. Seleciona banco} (3.5, -1);
+\draw[msg] (3.5, -2) -- node[above, font=\scriptsize] {2. POST /connect} (7, -2);
+\draw[msg] (7, -3) -- node[above, font=\scriptsize] {3. Create Connect Session} (10.5, -3);
+\draw[rmsg] (10.5, -4) -- node[above, font=\scriptsize] {4. connect\_url} (7, -4);
+\draw[rmsg] (7, -5) -- node[above, font=\scriptsize] {5. Redirect URL} (3.5, -5);
+\draw[msg] (3.5, -6) -- node[above, font=\scriptsize] {6. Redirect} (0, -6);
+\draw[msg] (0, -7) -- node[above, font=\scriptsize] {7. Autenticação no banco} (14, -7);
+\draw[rmsg] (14, -8) -- node[above, font=\scriptsize] {8. Consentimento OK} (10.5, -8);
+\draw[msg] (10.5, -9) -- node[above, font=\scriptsize] {9. Webhook: success} (7, -9);
+
+% Nota (posicionada sem sobrepor)
+\node[note] at (11.5, -10.2) {Backend processa webhook e inicia importação};
+
+\draw[msg] (7, -11.5) -- node[above, font=\scriptsize] {10. GET /accounts} (10.5, -11.5);
+\draw[rmsg] (10.5, -12.3) -- node[above, font=\scriptsize] {11. Lista de contas} (7, -12.3);
+\draw[msg] (7, -13.1) -- node[above, font=\scriptsize] {12. GET /transactions} (10.5, -13.1);
+\draw[rmsg] (10.5, -13.9) -- node[above, font=\scriptsize] {13. Transações (12 meses)} (7, -13.9);
+\draw[rmsg] (7, -14.7) -- node[above, font=\scriptsize] {14. Conta ligada} (3.5, -14.7);
+\draw[rmsg] (3.5, -15.5) -- node[above, font=\scriptsize] {15. Dashboard atualizado} (0, -15.5);
+
+\end{tikzpicture}%
+}

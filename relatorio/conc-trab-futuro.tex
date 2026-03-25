@@ -1,0 +1,51 @@
+\chapter{Conclusões e Trabalho Futuro}
+\label{chap:conclusoes}
+
+\section{Conclusões Principais}
+\label{sec:conc-principais}
+
+% TODO: Atualizar com conclusões reais após a conclusão do projeto
+
+Este projeto teve como objetivo o desenvolvimento de uma plataforma web de gestão financeira pessoal especificamente concebida para o mercado português, integrando Open Banking (\ac{PSD2}), categorização inteligente de transações com \ac{ML} e simulação fiscal de \ac{IRS}.
+
+Os principais contributos deste trabalho incluem:
+
+\begin{enumerate}
+    \item \textbf{Levantamento do estado da arte:} Foi realizada uma análise comparativa abrangente das principais plataformas de \ac{PFM} a nível internacional e europeu, identificando lacunas significativas no mercado português.
+
+    \item \textbf{Arquitetura de microserviços:} Foi concebida e implementada uma arquitetura escalável baseada em React, Node.js e PostgreSQL, com integração de Python para o módulo de \ac{ML}.
+
+    \item \textbf{Integração Open Banking:} A integração com a Salt Edge \ac{API} permitiu a agregação de contas bancárias portuguesas, demonstrando a viabilidade da utilização de Open Banking no contexto nacional.
+
+    \item \textbf{Categorização inteligente:} O modelo de \ac{ML} desenvolvido com scikit-learn demonstrou a capacidade de categorizar transações bancárias portuguesas com precisão adequada para utilização prática.
+
+    \item \textbf{Simulador de IRS:} Foi implementado um simulador fiscal determinístico que calcula o \ac{IRS} com base nas regras fiscais portuguesas, cobrindo os cenários mais comuns.
+
+    \item \textbf{Design Liquid Glass:} A interface do sistema adota um paradigma de design inovador no setor fintech, priorizando a usabilidade e acessibilidade.
+\end{enumerate}
+
+Os objetivos específicos definidos na Secção~\ref{sec:objetivos} foram alcançados conforme descrito ao longo deste relatório, confirmando a viabilidade técnica e a relevância de uma plataforma de \ac{PFM} adaptada ao mercado português.
+
+
+\section{Trabalho Futuro}
+\label{sec:trab-futuro}
+
+Com base nos resultados obtidos e nas limitações identificadas, são sugeridas as seguintes linhas de trabalho futuro:
+
+\begin{enumerate}
+    \item \textbf{Aplicação móvel nativa:} Desenvolvimento de aplicações iOS e Android utilizando React Native ou Flutter, partilhando a lógica de negócio com a versão web.
+
+    \item \textbf{Licença AISP:} Obtenção de licença de Account Information Service Provider junto do Banco de Portugal, permitindo acesso direto às \ac{API}s \ac{PSD2} dos bancos sem intermediários.
+
+    \item \textbf{Integração com investimentos:} Adição de suporte para tracking de investimentos através de \ac{API}s de corretoras (XTB, Trading 212), incluindo criptomoedas.
+
+    \item \textbf{Digital Twin Financeiro completo:} Implementação de simulações avançadas de cenários financeiros (``e se comprasse casa?'', ``e se mudasse de emprego?'') com projeções a 5, 10 e 20 anos.
+
+    \item \textbf{Gamificação com recompensas reais:} Estabelecimento de parcerias com retalhistas portugueses (Continente, Zara, Uber Eats) para oferecer vouchers como recompensa por bons comportamentos financeiros.
+
+    \item \textbf{Scanner ATCUD:} Implementação de leitura de QR codes \ac{ATCUD} em faturas portuguesas para categorização automática de despesas.
+
+    \item \textbf{Expansão europeia:} Adaptação da plataforma para outros mercados europeus, começando por Espanha, mantendo a abordagem de localização profunda.
+
+    \item \textbf{Melhoria do modelo de ML:} Evolução do modelo de categorização para utilizar técnicas de Deep Learning (transformadores) e aprendizagem federada, preservando a privacidade dos dados dos utilizadores.
+\end{enumerate}

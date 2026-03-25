@@ -1,0 +1,90 @@
+% Diagrama de Classes Simplificado - FinTwin (corrigido)
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    classbox/.style={draw, rectangle, rounded corners=2pt, minimum width=4.5cm, fill=#1!8, draw=#1!50, inner sep=6pt, font=\small},
+    >=Stealth
+]
+
+% Classe User (topo esquerdo)
+\node[classbox=blue] (user) at (0, 0) {
+    \begin{tabular}{l}
+    \textbf{User} \\
+    \midrule
+    - id: UUID \\
+    - email: string \\
+    - name: string \\
+    - currency: string \\
+    \midrule
+    + register() \\
+    + login() \\
+    + updateProfile()
+    \end{tabular}
+};
+
+% Classe BankAccountService (topo direito)
+\node[classbox=green] (bank) at (9, 0) {
+    \begin{tabular}{l}
+    \textbf{BankAccountService} \\
+    \midrule
+    - saltEdgeClient: SaltEdge \\
+    - accounts: BankAccount[] \\
+    \midrule
+    + connectAccount() \\
+    + syncTransactions() \\
+    + getBalance()
+    \end{tabular}
+};
+
+% Classe TransactionCategorizer (baixo esquerdo)
+\node[classbox=orange] (ml) at (0, -7) {
+    \begin{tabular}{l}
+    \textbf{TransactionCategorizer} \\
+    \midrule
+    - model: RandomForest \\
+    - vectorizer: TfidfVectorizer \\
+    - categories: Category[] \\
+    \midrule
+    + categorize(transaction) \\
+    + retrain(corrections) \\
+    + getConfidence()
+    \end{tabular}
+};
+
+% Classe BudgetManager (baixo direito)
+\node[classbox=red] (budget) at (9, -7) {
+    \begin{tabular}{l}
+    \textbf{BudgetManager} \\
+    \midrule
+    - budgets: Budget[] \\
+    - alertThreshold: number \\
+    \midrule
+    + createBudget() \\
+    + checkAlerts() \\
+    + getSpending()
+    \end{tabular}
+};
+
+% Classe IRSSimulator (centro em baixo)
+\node[classbox=purple] (irs) at (4.5, -13) {
+    \begin{tabular}{l}
+    \textbf{IRSSimulator} \\
+    \midrule
+    - taxBrackets: TaxBracket[] \\
+    - deductions: Deduction[] \\
+    \midrule
+    + simulate(income, deductions) \\
+    + compareJointSeparate() \\
+    + suggestDeductions()
+    \end{tabular}
+};
+
+% Relações com labels claros
+\draw[->, thick] (user.east) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {usa} (bank.west);
+\draw[->, thick] (bank.south) -- node[right, font=\scriptsize, fill=white, inner sep=2pt] {alimenta} (budget.north);
+\draw[->, thick] (bank.south west) -- node[above, font=\scriptsize, fill=white, inner sep=2pt, sloped] {envia para} (ml.north east);
+\draw[->, thick] (user.south) -- node[left, font=\scriptsize, fill=white, inner sep=2pt] {configura} (ml.north);
+\draw[->, dashed, thick] (ml.east) -- node[above, font=\scriptsize, fill=white, inner sep=2pt] {categorias} (budget.west);
+\draw[->, thick] (user.south east) -- node[right, font=\scriptsize, fill=white, inner sep=2pt, pos=0.4] {simula} (irs.north);
+
+\end{tikzpicture}%
+}

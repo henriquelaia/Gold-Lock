@@ -1,0 +1,74 @@
+\chapter{Introdução}
+\label{chap:intro}
+
+\section{Enquadramento}
+\label{sec:enquadramento}
+
+A transformação digital do setor financeiro tem vindo a alterar profundamente a forma como os cidadãos gerem as suas finanças pessoais. Com a entrada em vigor da diretiva europeia \ac{PSD2} em 2018, o conceito de \ac{AISP} permitiu o surgimento de plataformas que agregam informação de múltiplas contas bancárias num único ponto de acesso, proporcionando aos utilizadores uma visão holística da sua situação financeira~\cite{psd2directive}.
+
+No mercado internacional, soluções como o Copilot Money, Monarch Money, Treasury e Origin Financial têm demonstrado o potencial desta abordagem, combinando agregação bancária com categorização inteligente de transações, orçamentação e planeamento financeiro~\cite{copilot2024,monarch2024}. Contudo, estas plataformas são predominantemente orientadas ao mercado norte-americano, não contemplando as especificidades do ecossistema financeiro português, nomeadamente a integração com o sistema fiscal do \ac{IRS}, a rede \ac{SIBS}/Multibanco e os hábitos de consumo nacionais.
+
+Em Portugal, embora existam soluções como o Moey! (do Crédito Agrícola) e a presença de neobancos europeus como o Revolut e o N26, nenhuma plataforma oferece simultaneamente: agregação Open Banking de bancos portugueses, categorização automática de transações com \ac{ML} adaptada ao contexto português, e simulação fiscal de \ac{IRS}. Esta lacuna no mercado constitui a oportunidade que este projeto pretende explorar.
+
+O presente projeto, desenvolvido no âmbito da unidade curricular de Projeto do curso de Engenharia Informática da \ac{UBI}, propõe a conceção e implementação de uma plataforma web de gestão financeira pessoal (\ac{PFM}) especificamente desenhada para o mercado português, tirando partido das mais recentes tecnologias web, \ac{IA} e Open Banking.
+
+
+\section{Motivação}
+\label{sec:motivacao}
+
+A motivação para este projeto decorre de três fatores principais:
+
+\textbf{Lacuna no mercado português.} Apesar da crescente digitalização dos serviços financeiros em Portugal, não existe atualmente uma plataforma de \ac{PFM} que combine Open Banking com inteligência artificial e adaptação profunda ao contexto fiscal e bancário português. Os concorrentes internacionais ignoram particularidades como os escalões de \ac{IRS}, as deduções fiscais específicas, os Certificados de Aforro e Tesouro, e a rede Multibanco/MB~Way.
+
+\textbf{Avanços tecnológicos.} A maturidade das tecnologias de frontend (React 18, TypeScript), backend (Node.js), bases de dados (PostgreSQL) e \ac{ML} (scikit-learn), aliada à disponibilidade de APIs de Open Banking como a Salt Edge com cobertura de bancos portugueses, torna viável a implementação de uma solução competitiva no contexto de um projeto académico.
+
+\textbf{Relevância social.} A literacia financeira em Portugal continua abaixo da média europeia~\cite{oecd2023}. Uma plataforma que automatize a categorização de gastos, alerte sobre orçamentos e simule o impacto fiscal das decisões financeiras pode contribuir para melhorar a saúde financeira dos cidadãos portugueses.
+
+
+\section{Objetivos}
+\label{sec:objetivos}
+
+\subsection{Objetivo Geral}
+
+Desenvolver um protótipo funcional de uma plataforma web de gestão financeira pessoal, focada no mercado português, que integre Open Banking (\ac{PSD2}), categorização automática de transações com \ac{IA} e simulação fiscal de \ac{IRS}.
+
+\subsection{Objetivos Específicos}
+
+\begin{enumerate}[label=\textbf{OE\arabic*}]
+    \item Realizar um levantamento do estado da arte em plataformas de gestão financeira pessoal e tecnologias Open Banking.
+    \item Conceber e implementar uma arquitetura de microserviços escalável com React, Node.js e PostgreSQL.
+    \item Integrar a \ac{API} Salt Edge para agregação de contas bancárias portuguesas via Open Banking (\ac{PSD2}).
+    \item Desenvolver um módulo de categorização automática de transações com \ac{ML}.
+    \item Implementar um simulador de \ac{IRS} baseado nas regras fiscais portuguesas vigentes.
+    \item Criar uma interface de utilizador com design Liquid Glass, priorizando usabilidade e acessibilidade (\ac{WCAG} AA).
+    \item Avaliar o sistema com utilizadores reais através de testes de usabilidade (\ac{SUS}) e métricas de performance.
+\end{enumerate}
+
+
+\section{Metodologia}
+\label{sec:metodologia}
+
+O projeto segue uma metodologia Scrum adaptada para desenvolvimento individual, organizada em 8 sprints de duas semanas, cobrindo o período de abril a julho de 2026. O ambiente de desenvolvimento utiliza Docker e Docker Compose para garantir paridade entre ambientes, seguindo os princípios do Twelve-Factor App. A metodologia divide-se em quatro fases:
+
+\begin{enumerate}
+    \item \textbf{Fase 1 --- Investigação e Planeamento (Sprint 1):} Levantamento do estado da arte, análise comparativa de concorrentes, definição de requisitos, desenho da arquitetura e criação de protótipos no Figma.
+    \item \textbf{Fase 2 --- Desenvolvimento do \ac{MVP} (Sprints 2--6):} Setup do ambiente Docker, implementação iterativa das funcionalidades core, incluindo autenticação, integração Open Banking, dashboard, categorização com \ac{ML}, simulador de \ac{IRS} e design Liquid Glass.
+    \item \textbf{Fase 3 --- Testes e Avaliação (Sprint 7):} Testes de usabilidade com 10 a 15 utilizadores, questionário \ac{SUS}, testes de performance e validação do modelo de \ac{ML}.
+    \item \textbf{Fase 4 --- Documentação e Entrega (Sprint 8):} Redação do relatório final, preparação da apresentação e defesa do projeto.
+\end{enumerate}
+
+
+\section{Organização do Documento}
+\label{sec:organizacao}
+
+De modo a refletir o trabalho realizado, este documento encontra-se estruturado da seguinte forma:
+
+\begin{enumerate}
+    \item O primeiro capítulo --- \textbf{Introdução} --- apresenta o enquadramento do projeto, a motivação, os objetivos, a metodologia adotada e a organização do documento.
+    \item O segundo capítulo --- \textbf{Estado da Arte} --- apresenta a revisão bibliográfica sobre gestão financeira pessoal, Open Banking e \ac{ML} em fintech, bem como uma análise comparativa detalhada dos concorrentes.
+    \item O terceiro capítulo --- \textbf{Análise de Requisitos} --- descreve os requisitos funcionais e não-funcionais do sistema, incluindo diagramas de casos de uso.
+    \item O quarto capítulo --- \textbf{Arquitetura e Design} --- detalha a arquitetura do sistema, as decisões técnicas, os diagramas \ac{UML} e o design da interface.
+    \item O quinto capítulo --- \textbf{Implementação} --- apresenta os detalhes técnicos da implementação de cada módulo do sistema.
+    \item O sexto capítulo --- \textbf{Testes e Avaliação} --- descreve os testes realizados e a avaliação dos resultados obtidos.
+    \item O sétimo capítulo --- \textbf{Conclusões e Trabalho Futuro} --- sintetiza as principais conclusões e identifica oportunidades de trabalho futuro.
+\end{enumerate}

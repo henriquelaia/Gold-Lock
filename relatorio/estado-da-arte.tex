@@ -1,0 +1,146 @@
+\chapter{Estado da Arte}
+\label{chap:estado-arte}
+
+\section{Introdução}
+\label{sec:ea-intro}
+
+Este capítulo apresenta o levantamento do estado da arte nas áreas fundamentais para o desenvolvimento deste projeto: gestão financeira pessoal (\ac{PFM}), Open Banking e a aplicação de \ac{ML} no setor financeiro. Adicionalmente, é realizada uma análise comparativa detalhada dos principais concorrentes, tanto a nível internacional como europeu e português.
+
+\section{Gestão Financeira Pessoal}
+\label{sec:ea-pfm}
+
+O conceito de \ac{PFM} refere-se ao conjunto de ferramentas e práticas que permitem aos indivíduos monitorizar, gerir e planear as suas finanças pessoais~\cite{pfm2023}. Historicamente, a gestão financeira era realizada através de folhas de cálculo ou registos manuais. Com a digitalização, surgiram plataformas especializadas que automatizam grande parte deste processo.
+
+As plataformas modernas de \ac{PFM} oferecem tipicamente as seguintes funcionalidades: agregação de contas bancárias, categorização automática de transações, criação de orçamentos, definição de metas de poupança e geração de relatórios financeiros. Algumas soluções mais avançadas incluem ainda investimentos integrados, simulação fiscal e aconselhamento financeiro com recurso a \ac{IA}~\cite{fintech2024}.
+
+\subsection{Evolução Histórica}
+
+A primeira geração de ferramentas \ac{PFM} incluiu soluções como o Microsoft Money (1991) e o Quicken (1983), que funcionavam como software desktop. A segunda geração, liderada pelo Mint (2006), introduziu a agregação bancária online e a categorização automática de transações. A geração atual é caracterizada pela integração de \ac{IA}, Open Banking regulamentado e experiências mobile-first~\cite{pfm-evolution2024}.
+
+\subsection{O Mercado Português}
+
+Em Portugal, o panorama de \ac{PFM} é relativamente limitado. O Moey!, pertencente ao grupo Crédito Agrícola, é o principal neobank português, oferecendo funcionalidades básicas de categorização e objetivos de poupança (``Potes''). Contudo, não suporta agregação de contas externas via Open Banking, nem oferece funcionalidades avançadas de \ac{IA} ou simulação fiscal. Os neobancos europeus presentes em Portugal (Revolut, N26, Bunq) oferecem analytics financeiros, mas sem qualquer adaptação ao contexto fiscal e bancário português.
+
+
+\section{Open Banking e PSD2}
+\label{sec:ea-openbanking}
+
+\subsection{A Diretiva PSD2}
+
+A \ac{PSD2} (Payment Services Directive 2) é uma diretiva da União Europeia que entrou em vigor em janeiro de 2018, regulamentando os serviços de pagamento no mercado europeu~\cite{psd2directive}. Um dos seus principais contributos foi a obrigatoriedade de os bancos disponibilizarem \ac{API}s abertas que permitem a terceiros autorizados aceder à informação das contas dos clientes (com o seu consentimento explícito).
+
+A diretiva define dois tipos principais de prestadores de serviços de terceiros:
+\begin{itemize}
+    \item \textbf{\ac{AISP} (Account Information Service Provider):} Entidades autorizadas a aceder à informação das contas bancárias para fins de agregação e análise.
+    \item \textbf{PISP (Payment Initiation Service Provider):} Entidades autorizadas a iniciar pagamentos em nome do cliente.
+\end{itemize}
+
+\subsection{Implementação em Portugal}
+
+Em Portugal, a implementação da \ac{PSD2} é supervisionada pelo Banco de Portugal. A \ac{SIBS}, enquanto operadora da rede Multibanco, disponibiliza a SIBS API Market, que permite o acesso a serviços de Open Banking de bancos portugueses. Adicionalmente, agregadores europeus como a Salt Edge oferecem cobertura de bancos portugueses, incluindo a Caixa Geral de Depósitos, o Millennium BCP, o Santander Portugal e o BPI~\cite{saltedge2024}.
+
+\subsection{Salt Edge como Agregador}
+
+A Salt Edge é uma plataforma de agregação financeira europeia que oferece uma \ac{API} \ac{REST} para acesso a contas bancárias via \ac{PSD2}. A plataforma disponibiliza um ambiente sandbox gratuito para desenvolvimento e testes, com cobertura de mais de 5.000 instituições financeiras em 50 países, incluindo os principais bancos portugueses~\cite{saltedge2024}. Para o contexto deste projeto, a Salt Edge foi selecionada como o agregador principal devido à sua cobertura do mercado português, à disponibilidade de sandbox gratuita e à qualidade da documentação técnica.
+
+
+\section{Machine Learning em Fintech}
+\label{sec:ea-ml}
+
+A aplicação de \ac{ML} no setor financeiro (fintech) tem crescido exponencialmente nos últimos anos, abrangendo áreas como a deteção de fraude, a categorização de transações, a avaliação de risco de crédito e o aconselhamento financeiro automatizado (robo-advisors)~\cite{ml-fintech2024}.
+
+\subsection{Categorização Automática de Transações}
+
+A categorização de transações bancárias é um problema clássico de classificação de texto em \ac{ML}. As transações bancárias contêm tipicamente uma descrição textual curta (e.g., ``COMPRA CONTINENTE COVILHA''), um montante e uma data. O objetivo é atribuir automaticamente cada transação a uma categoria pré-definida (e.g., ``Supermercado'', ``Transportes'', ``Saúde'').
+
+As abordagens mais comuns incluem:
+\begin{itemize}
+    \item \textbf{Modelos baseados em regras:} Utilizam expressões regulares e dicionários de comerciantes para classificação determinística.
+    \item \textbf{Modelos de \ac{ML} tradicionais:} Algoritmos como Naive Bayes, SVM (Support Vector Machine) e Random Forest aplicados a features extraídas do texto das transações~\cite{sklearn2024}.
+    \item \textbf{Modelos de Deep Learning:} Redes neuronais recorrentes (LSTM) ou transformadores (BERT) para classificação de sequências textuais.
+\end{itemize}
+
+Para o contexto deste projeto, optou-se pela utilização da biblioteca scikit-learn (Python), combinando técnicas de TF-IDF para vetorização do texto com um classificador Random Forest, por oferecer um bom equilíbrio entre precisão e complexidade de implementação no contexto de um projeto académico.
+
+\subsection{IA Generativa em Finanças}
+
+A \ac{IA} generativa, nomeadamente modelos de linguagem como o GPT-4o da OpenAI, tem encontrado aplicações no setor financeiro para geração de insights personalizados, chatbots de aconselhamento financeiro e análise de sentimento de mercado~\cite{openai2024}. Neste projeto, a \ac{IA} generativa é utilizada complementarmente ao modelo de \ac{ML} para fornecer sugestões conversacionais e personalizadas ao utilizador.
+
+
+\section{Análise Comparativa de Concorrentes}
+\label{sec:ea-concorrentes}
+
+\subsection{Concorrentes Internacionais}
+
+Foram analisados os quatro principais concorrentes no mercado internacional de \ac{PFM}:
+
+\subsubsection{Copilot Money}
+O Copilot Money é uma aplicação exclusiva para iOS que se destaca pelo design premium (finalista do Apple Design Award 2024) e pela precisão da sua categorização com \ac{ML}, com apenas cerca de 20\% das transações a necessitarem de recategorização. No entanto, é exclusivo da plataforma Apple, não suporta funcionalidades para casais e tem um preço de \$95/ano~\cite{copilot2024}.
+
+\subsubsection{Monarch Money}
+O Monarch Money é uma plataforma multiplataforma (web, iOS, Android) com foco em funcionalidades familiares, incluindo contas separadas e conjuntas para casais. Integra um assistente de \ac{IA} baseado em GPT-4, dashboards visuais avançados e um recurso de ``Month in Review'' automático. Suporta mais de 13.000 instituições financeiras, com um preço de \$99,99/ano~\cite{monarch2024}.
+
+\subsubsection{Treasury}
+O Treasury diferencia-se pela máxima flexibilidade, oferecendo um sistema de ``blocos de construção'' que permite ao utilizador criar o seu próprio sistema de orçamentação. Esta abordagem modular é especialmente atrativa para utilizadores avançados, embora possa apresentar uma curva de aprendizagem mais acentuada para iniciantes.
+
+\subsubsection{Origin Financial}
+O Origin Financial é a solução mais completa (``all-in-one''), integrando orçamentação, investimentos, declaração de impostos e planeamento patrimonial. Destaca-se pela conta poupança com 4,37\% APY e por regras avançadas de categorização automática, com um preço de \$99/ano.
+
+
+\subsection{Concorrentes Europeus e Portugueses}
+
+\subsubsection{Revolut}
+Com mais de 70 milhões de utilizadores, o Revolut é o maior neobank europeu. Oferece suporte para 34+ moedas, investimentos (ações e criptomoedas), analytics de gastos e ligação a contas externas. No entanto, não tem foco no mercado português, não integra com o sistema fiscal e a interface pode ser complexa para utilizadores menos técnicos.
+
+\subsubsection{N26}
+O N26 é um banco digital alemão com licença bancária completa, oferecendo proteção de depósitos até 100.000 euros. Destaca-se pela interface minimalista e onboarding rápido, mas tem funcionalidades de analytics e Open Banking limitadas.
+
+\subsubsection{Moey!}
+O Moey! é o principal neobank português, pertencente ao grupo Crédito Agrícola. É totalmente gratuito e integra nativamente com MB Way e a rede Multibanco. Contudo, apresenta funcionalidades muito básicas de analytics, não suporta Open Banking para contas externas e não tem funcionalidades de \ac{IA} ou simulação fiscal.
+
+
+\subsection{Análise Comparativa}
+
+A Tabela~\ref{tab:comparativa} sintetiza a análise comparativa das principais plataformas analisadas.
+
+\begin{table}[H]
+\centering
+\caption{Análise comparativa dos concorrentes principais.}
+\label{tab:comparativa}
+\small
+\begin{tabularx}{\textwidth}{l c c c c c c}
+\toprule
+\textbf{Característica} & \textbf{Copilot} & \textbf{Monarch} & \textbf{Origin} & \textbf{Revolut} & \textbf{Moey!} & \textbf{FinTwin} \\
+\midrule
+Multi-plataforma         & --  & Sim & Sim & Sim & Sim & Sim \\
+IA/ML                    & Sim & Sim & Sim & --  & --  & Sim \\
+Open Banking PT          & --  & --  & --  & Sim & --  & Sim \\
+Simulador IRS            & --  & --  & Parcial & -- & -- & Sim \\
+Casais/Família           & --  & Sim & Sim & --  & --  & Futuro \\
+Categorias PT            & --  & --  & --  & --  & Básico & Sim \\
+Design Liquid Glass      & --  & --  & --  & --  & --  & Sim \\
+Preço                    & \$95 & \$100 & \$99 & Grátis & Grátis & TBD \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\section{Lacunas Identificadas no Mercado}
+\label{sec:ea-lacunas}
+
+A análise realizada permitiu identificar as seguintes lacunas críticas no mercado, que nenhum concorrente atual colmata:
+
+\begin{enumerate}
+    \item \textbf{Integração com o sistema fiscal português:} Nenhuma plataforma oferece simulação de \ac{IRS} ou integração com a \ac{AT}/Portal das Finanças.
+    \item \textbf{Categorização adaptada ao mercado português:} As categorias de gastos não contemplam especificidades portuguesas (portagens, CTT, supermercados nacionais).
+    \item \textbf{Open Banking otimizado para Portugal:} Nenhuma plataforma é nativamente otimizada para a rede \ac{SIBS}/Multibanco.
+    \item \textbf{Design Liquid Glass em fintech:} Nenhum concorrente adota o paradigma de design Liquid Glass.
+\end{enumerate}
+
+Estas lacunas representam a oportunidade que o presente projeto se propõe explorar.
+
+
+\section{Conclusões}
+\label{sec:ea-conclusoes}
+
+O levantamento do estado da arte confirmou a viabilidade técnica e a relevância do projeto proposto. As tecnologias necessárias --- Open Banking via \ac{PSD2}, \ac{ML} para categorização de transações e frameworks modernos de desenvolvimento web --- estão maduras e acessíveis. Simultaneamente, a análise comparativa revelou uma clara lacuna no mercado para uma plataforma de \ac{PFM} focada no mercado português, que combine funcionalidades avançadas de \ac{IA} com adaptação profunda ao contexto fiscal e bancário nacional.

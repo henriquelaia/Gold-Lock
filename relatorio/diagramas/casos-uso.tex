@@ -1,0 +1,55 @@
+% Diagrama de Casos de Uso - FinTwin (corrigido)
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    usecase/.style={draw, ellipse, minimum width=3.2cm, minimum height=1.1cm, text width=2.8cm, align=center, font=\small},
+    system/.style={draw, dashed, rounded corners, inner sep=20pt},
+    >=Stealth
+]
+
+% Sistema boundary
+\node[system, minimum width=8cm, minimum height=13cm] (sys) at (5, -3) {};
+\node[font=\bfseries, anchor=south] at (5, 3.8) {FinTwin --- Plataforma de Gestão Financeira};
+
+% Casos de uso - bem espaçados verticalmente
+\node[usecase] (uc1) at (5, 3) {Registar Conta};
+\node[usecase] (uc2) at (5, 1.5) {Fazer Login};
+\node[usecase] (uc3) at (5, 0) {Ligar Conta Bancária};
+\node[usecase] (uc4) at (5, -1.5) {Consultar Dashboard};
+\node[usecase] (uc5) at (5, -3) {Gerir Orçamentos};
+\node[usecase] (uc6) at (5, -4.5) {Simular IRS};
+\node[usecase] (uc7) at (5, -6) {Definir Metas Poupança};
+
+% Ator Utilizador (à esquerda, centrado)
+\draw (-1, -0.8) circle (0.35);
+\draw (-1, -1.15) -- (-1, -2.1);
+\draw (-1.5, -1.55) -- (-0.5, -1.55);
+\draw (-1, -2.1) -- (-1.4, -2.8);
+\draw (-1, -2.1) -- (-0.6, -2.8);
+\node[font=\small\bfseries, anchor=north] at (-1, -2.9) {Utilizador};
+
+% Ator Salt Edge (à direita)
+\draw (11, -0.8) circle (0.35);
+\draw (11, -1.15) -- (11, -2.1);
+\draw (10.5, -1.55) -- (11.5, -1.55);
+\draw (11, -2.1) -- (10.6, -2.8);
+\draw (11, -2.1) -- (11.4, -2.8);
+\node[font=\small\bfseries, anchor=north] at (11, -2.9) {Salt Edge API};
+
+% Ligações utilizador -> casos de uso
+\draw[->] (-0.5, -1.5) -- (uc1.west);
+\draw[->] (-0.5, -1.5) -- (uc2.west);
+\draw[->] (-0.5, -1.5) -- (uc3.west);
+\draw[->] (-0.5, -1.5) -- (uc4.west);
+\draw[->] (-0.5, -1.5) -- (uc5.west);
+\draw[->] (-0.5, -1.5) -- (uc6.west);
+\draw[->] (-0.5, -1.5) -- (uc7.west);
+
+% Ligação Salt Edge -> Ligar Conta Bancária
+\draw[->] (10.5, -1.5) -- (uc3.east);
+
+% Relações include (com espaço para label)
+\draw[->, dashed] (uc3.north) -- node[right, font=\scriptsize, fill=white, inner sep=1pt] {$\ll$include$\gg$} (uc2.south);
+\draw[->, dashed] (uc4.north) -- node[right, font=\scriptsize, fill=white, inner sep=1pt] {$\ll$include$\gg$} (uc3.south);
+
+\end{tikzpicture}%
+}
