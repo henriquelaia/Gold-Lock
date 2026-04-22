@@ -39,7 +39,7 @@ export function ForgotPasswordPage() {
         className="w-full max-w-md rounded-3xl border border-white/60 p-10"
         style={{
           background: 'rgba(255,255,255,0.78)',
-          backdropFilter: 'blur(24px)',
+          
           boxShadow: '0 8px 40px rgba(73,62,229,0.10)',
         }}
       >
@@ -47,31 +47,31 @@ export function ForgotPasswordPage() {
         <div className="flex items-center gap-2.5 mb-8">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #493ee5 0%, #635bff 100%)', boxShadow: '0 4px 12px rgba(73,62,229,0.3)' }}
+            style={{ background: 'var(--ink-900)' }}
           >
             <Lock className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-black tracking-tighter text-[#101c29]">
-            Gold<span className="text-[#493ee5]">Lock</span>
+          <span className="text-xl font-black tracking-tighter text-[var(--ink-900)]">
+            Gold<span className="text-[var(--gold)]">Lock</span>
           </span>
         </div>
 
         {sent ? (
           <div className="text-center py-4">
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-[#101c29] mb-2">Email enviado!</h2>
-            <p className="text-sm text-[#464555]/70 mb-6">
+            <h2 className="text-lg font-bold text-[var(--ink-900)] mb-2">Email enviado!</h2>
+            <p className="text-sm text-[var(--ink-500)]/70 mb-6">
               Se o endereço estiver registado, receberás um email com instruções para recuperar a password.
               O link é válido por <strong>1 hora</strong>.
             </p>
-            <Link to="/login" className="text-sm text-[#493ee5] font-medium hover:underline">
+            <Link to="/login" className="text-sm text-[var(--gold)] font-medium hover:underline">
               Voltar ao login
             </Link>
           </div>
         ) : (
           <>
-            <h2 className="text-2xl font-black text-[#101c29] tracking-tight mb-1">Recuperar password</h2>
-            <p className="text-sm text-[#464555]/60 mb-6">
+            <h2 className="text-2xl font-black text-[var(--ink-900)] tracking-tight mb-1">Recuperar password</h2>
+            <p className="text-sm text-[var(--ink-500)]/60 mb-6">
               Introduz o teu email e enviaremos um link de recuperação.
             </p>
 
@@ -84,7 +84,7 @@ export function ForgotPasswordPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#464555] mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">
                   Email
                 </label>
                 <input
@@ -93,8 +93,8 @@ export function ForgotPasswordPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="o.teu@email.pt"
                   required
-                  className="w-full px-4 py-3 rounded-xl text-sm text-[#101c29] outline-none border border-transparent focus:border-[#493ee5]/40 transition-colors"
-                  style={{ background: 'rgba(73,62,229,0.05)' }}
+                  className="w-full px-4 py-3 rounded-xl text-sm text-[var(--ink-900)] outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                  style={{ background: 'rgba(0,0,0,0.03)' }}
                 />
               </div>
 
@@ -102,14 +102,14 @@ export function ForgotPasswordPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60 transition-opacity"
-                style={{ background: 'linear-gradient(135deg, #493ee5 0%, #635bff 100%)' }}
+                style={{ background: 'var(--ink-900)' }}
               >
                 {loading ? 'A enviar…' : 'Enviar link de recuperação'}
               </button>
             </form>
 
             <div className="mt-6 text-center">
-              <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-[#464555]/60 hover:text-[#493ee5] transition-colors">
+              <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-500)]/60 hover:text-[var(--gold)] transition-colors">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Voltar ao login
               </Link>

@@ -78,7 +78,7 @@ export function SettingsPage() {
             key={id}
             onClick={() => setTab(id)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === id ? 'text-[#493ee5] shadow-sm' : 'text-[#464555]/60 hover:text-[#464555]'
+              tab === id ? 'text-[var(--gold)] shadow-sm' : 'text-[var(--ink-500)]/60 hover:text-[var(--ink-500)]'
             }`}
             style={tab === id ? { background: 'rgba(255,255,255,0.85)' } : {}}
           >
@@ -91,7 +91,7 @@ export function SettingsPage() {
       {/* Tab: Perfil */}
       {tab === 'profile' && (
         <GlassCard>
-          <h3 className="text-base font-bold text-[#101c29] mb-4">Informação pessoal</h3>
+          <h3 className="text-base font-bold text-[var(--ink-900)] mb-4">Informação pessoal</h3>
           {profileMsg && (
             <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${profileMsg.type === 'ok' ? 'text-green-700 bg-green-50' : 'text-[#ba1a1a] bg-[#ffdad6]'}`}>
               {profileMsg.text}
@@ -99,36 +99,36 @@ export function SettingsPage() {
           )}
           <form onSubmit={saveProfile} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-[#464555] mb-1.5 uppercase tracking-wider">Nome</label>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">Nome</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[#493ee5]/40 transition-colors"
-                style={{ background: 'rgba(73,62,229,0.05)' }}
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                style={{ background: 'rgba(0,0,0,0.03)' }}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#464555] mb-1.5 uppercase tracking-wider">Email</label>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">Email</label>
               <input
                 type="email"
                 value={user?.email ?? ''}
                 disabled
-                className="w-full px-4 py-2.5 rounded-xl text-sm text-[#464555]/50 cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-xl text-sm text-[var(--ink-500)]/50 cursor-not-allowed"
                 style={{ background: 'rgba(0,0,0,0.03)' }}
               />
-              <p className="text-xs text-[#464555]/40 mt-1">O email não pode ser alterado.</p>
+              <p className="text-xs text-[var(--ink-500)]/40 mt-1">O email não pode ser alterado.</p>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#464555] mb-1.5 uppercase tracking-wider">URL do avatar (opcional)</label>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">URL do avatar (opcional)</label>
               <input
                 type="url"
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[#493ee5]/40 transition-colors"
-                style={{ background: 'rgba(73,62,229,0.05)' }}
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                style={{ background: 'rgba(0,0,0,0.03)' }}
               />
             </div>
             <GlassButton type="submit" loading={savingProfile}>Guardar alterações</GlassButton>
@@ -139,22 +139,22 @@ export function SettingsPage() {
       {/* Tab: Segurança */}
       {tab === 'security' && (
         <GlassCard>
-          <h3 className="text-base font-bold text-[#101c29] mb-2">Segurança da conta</h3>
-          <p className="text-sm text-[#464555]/60 mb-6">
+          <h3 className="text-base font-bold text-[var(--ink-900)] mb-2">Segurança da conta</h3>
+          <p className="text-sm text-[var(--ink-500)]/60 mb-6">
             Para alterar a password, utiliza o fluxo de recuperação de password.
             Receberás um email com um link seguro (válido 1 hora).
           </p>
           <a
             href="/forgot-password"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[#493ee5] border border-[#493ee5]/20 transition-colors hover:bg-[#493ee5]/5"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[var(--gold)] border border-[var(--gold)]/20 transition-colors hover:bg-[var(--gold)]/5"
           >
             <Shield className="w-4 h-4" />
             Alterar password por email
           </a>
 
-          <div className="mt-6 pt-6 border-t border-[#493ee5]/10">
-            <h4 className="text-sm font-semibold text-[#101c29] mb-1">Email verificado</h4>
-            <p className="text-sm text-[#464555]/60">
+          <div className="mt-6 pt-6 border-t border-[var(--gold)]/10">
+            <h4 className="text-sm font-semibold text-[var(--ink-900)] mb-1">Email verificado</h4>
+            <p className="text-sm text-[var(--ink-500)]/60">
               {user?.email_verified
                 ? '✓ O teu email está verificado.'
                 : '✗ Email ainda não verificado — verifica a tua caixa de entrada.'}
@@ -166,8 +166,8 @@ export function SettingsPage() {
       {/* Tab: 2FA */}
       {tab === '2fa' && (
         <GlassCard>
-          <h3 className="text-base font-bold text-[#101c29] mb-1">Autenticação de dois fatores</h3>
-          <p className="text-sm text-[#464555]/60 mb-6">
+          <h3 className="text-base font-bold text-[var(--ink-900)] mb-1">Autenticação de dois fatores</h3>
+          <p className="text-sm text-[var(--ink-500)]/60 mb-6">
             O TOTP (Time-based One-Time Password) gera um código de 6 dígitos a cada 30 segundos,
             compatível com Google Authenticator, Authy e outros.
           </p>
@@ -184,7 +184,7 @@ export function SettingsPage() {
                 <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
                 2FA ativo
               </div>
-              <p className="text-sm text-[#464555]/60">
+              <p className="text-sm text-[var(--ink-500)]/60">
                 Para desativar, confirma a tua password atual.
               </p>
               <form onSubmit={disableTotp} className="space-y-3">
@@ -194,8 +194,8 @@ export function SettingsPage() {
                   onChange={(e) => setTotpPassword(e.target.value)}
                   placeholder="Password atual"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[#493ee5]/40"
-                  style={{ background: 'rgba(73,62,229,0.05)' }}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40"
+                  style={{ background: 'rgba(0,0,0,0.03)' }}
                 />
                 <GlassButton variant="danger" type="submit" loading={disablingTotp} size="sm">
                   Desativar 2FA
@@ -204,7 +204,7 @@ export function SettingsPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-[#464555]/50 font-medium">
+              <div className="flex items-center gap-2 text-sm text-[var(--ink-500)]/50 font-medium">
                 <span className="w-2 h-2 rounded-full bg-gray-300 inline-block" />
                 2FA inativo
               </div>

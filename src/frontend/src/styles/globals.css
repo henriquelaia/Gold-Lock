@@ -1,27 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* ──────────────────────────────────────────────
+   GoldLock Design System
+   Philosophy: Apple confidence · Revolut clarity
+   Palette: ink (warm black) + gold accents only
+   ────────────────────────────────────────────── */
+:root {
+  /* Gold — accent only, never backgrounds */
+  --gold:         #C9A227;
+  --gold-light:   #E2B93A;
+  --gold-subtle:  rgba(201, 162, 39, 0.08);
+  --gold-border:  rgba(201, 162, 39, 0.18);
 
-@layer base {
-  body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
+  /* Ink — warm near-black scale */
+  --ink-900: #111110;
+  --ink-800: #1C1B19;
+  --ink-700: #2E2D2A;
+  --ink-500: #6B6A62;
+  --ink-400: #918F87;
+  --ink-300: #C4C3BC;
+  --ink-200: #DDDCDA;
+  --ink-100: #EEEEED;
+  --ink-50:  #F7F7F6;
+
+  /* Surfaces */
+  --bg:      #F4F4F2;
+  --surface: #FFFFFF;
+  --border:  #E8E7E4;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
 }
 
-/* Liquid Glass Effect */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { height: 100%; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink-900);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv01', 'cv02', 'cv03', 'cv04';
+    height: 100%;
+  }
+
+  #root { height: 100%; }
+}
+
 @layer components {
-  .glass-card {
-    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 rounded-2xl shadow-lg;
+  /* ── Card principal — blanc pur, ombre chirurgicale */
+  .gl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xs);
   }
 
-  .glass-sidebar {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-r border-white/20 dark:border-gray-700/30;
+  /* ── Sidebar — blanc solide, bord discret */
+  .gl-sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
   }
 
-  .glass-button {
-    @apply bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg border border-white/30 dark:border-gray-600/30 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200;
+  /* ── Boutton principal — noir */
+  .gl-btn {
+    background: var(--ink-900);
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 12px;
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
+  .gl-btn:hover { opacity: 0.82; }
+  .gl-btn:disabled { opacity: 0.40; cursor: not-allowed; }
+
+  /* ── Badge doré */
+  .gl-badge-gold {
+    background: var(--gold-subtle);
+    border: 1px solid var(--gold-border);
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  /* ── Étiquette section */
+  .gl-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-300);
+  }
+
+  /* ── Input */
+  .gl-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--ink-900);
+    outline: none;
+    transition: border-color 0.15s ease;
+    width: 100%;
+  }
+  .gl-input:focus { border-color: var(--gold); }
+  .gl-input::placeholder { color: var(--ink-300); }
+
+  /* Alias legado */
+  .glass-card { @apply gl-card; }
+  .glass-sidebar { @apply gl-sidebar; }
+}
+
+/* ── Scrollbar discrète */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--ink-200);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-300); }
+
+/* ── Sélection de texte */
+::selection {
+  background: var(--gold-subtle);
+  color: var(--ink-900);
+}
+
+/* ── Animation utilitaire */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

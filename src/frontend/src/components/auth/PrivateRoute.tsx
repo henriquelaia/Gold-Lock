@@ -34,7 +34,8 @@ export function PrivateRoute() {
     if (!hydrated) return;
 
     // Se há token mas não user (e.g., page refresh), validar sessão via API
-    if (accessToken && !user) {
+    // Token "demo-token" não precisa de validação — é só para modo demo
+    if (accessToken && !user && accessToken !== 'demo-token') {
       setChecking(true);
       api.get('/auth/me')
         .then(({ data }) => {

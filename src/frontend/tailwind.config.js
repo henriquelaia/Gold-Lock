@@ -5,38 +5,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#b9dffd',
-          300: '#7cc5fb',
-          400: '#36a8f7',
-          500: '#0c8ce8',
-          600: '#006fc6',
-          700: '#0159a1',
-          800: '#064c85',
-          900: '#0b406e',
-          950: '#072849',
+        // ── Paleta GoldLock ──────────────────────
+        // Base: preto, branco, cinzas quentes
+        ink: {
+          50:  '#F7F7F5',
+          100: '#EFEEEB',
+          200: '#DEDED9',
+          300: '#C8C7C1',
+          400: '#A8A79F',
+          500: '#6B6A62',
+          600: '#4A4940',
+          700: '#2E2D27',
+          800: '#1A1916',
+          900: '#0D0C0A',
         },
-        accent: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+        // Dourado — o acento da marca
+        gold: {
+          50:  '#FFFBEB',
+          100: '#FEF3C7',
+          200: '#FDE68A',
+          300: '#F5C842',
+          400: '#E8B422',
+          500: '#C9A227', // ← dourado principal
+          600: '#A8831A',
+          700: '#856512',
+          800: '#5C440B',
+          900: '#3A2B06',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-      },
-      backdropBlur: {
-        xs: '2px',
       },
     },
   },

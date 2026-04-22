@@ -7,7 +7,9 @@ import {
   Calculator,
   Landmark,
   Settings,
-  Lock,
+  LogOut,
+  TrendingUp,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -15,9 +17,11 @@ const navItems = [
   { to: '/',             icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/transactions', icon: ArrowLeftRight,  label: 'Transações' },
   { to: '/accounts',     icon: Landmark,        label: 'Contas' },
+  { to: '/investments',  icon: TrendingUp,      label: 'Investimentos' },
   { to: '/budgets',      icon: PiggyBank,       label: 'Orçamentos' },
   { to: '/goals',        icon: Target,          label: 'Metas' },
   { to: '/irs',          icon: Calculator,      label: 'Simulador IRS' },
+  { to: '/learn',        icon: GraduationCap,   label: 'Aprende' },
 ];
 
 export function Sidebar() {
@@ -25,85 +29,116 @@ export function Sidebar() {
 
   return (
     <aside
-      className="w-60 flex flex-col shrink-0"
+      className="w-56 flex flex-col shrink-0 h-full"
       style={{
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(255,255,255,0.7)',
-        boxShadow: '4px 0 24px rgba(73,62,229,0.05)',
+        background: 'var(--surface)',
+        borderRight: '1px solid var(--border)',
       }}
     >
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5">
+      <div className="px-5 py-6">
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, #493ee5 0%, #635bff 100%)', boxShadow: '0 4px 12px rgba(73,62,229,0.3)' }}
-          >
-            <Lock className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'var(--ink-900)' }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2.5" y="7.5" width="11" height="7" rx="1.5" stroke="white" strokeWidth="1.2"/>
+              <path d="M5 7.5V5C5 3.343 6.343 2 8 2C9.657 2 11 3.343 11 5V7.5"
+                stroke="#C9A227" strokeWidth="1.4" strokeLinecap="round"/>
+              <circle cx="8" cy="11" r="1.2" fill="#C9A227"/>
+            </svg>
           </div>
           <div>
-            <div className="text-base font-black tracking-tighter leading-none text-[#101c29]">
-              Gold<span className="text-[#493ee5]">Lock</span>
+            <div className="text-[15px] font-black tracking-tight leading-none" style={{ color: 'var(--ink-900)' }}>
+              Gold<span style={{ color: 'var(--gold)' }}>Lock</span>
             </div>
-            <div className="text-[9px] uppercase font-bold mt-0.5 text-[#464555]/40" style={{ letterSpacing: '0.15em' }}>
-              High-End Finance
+            <div className="text-[9px] font-semibold mt-0.5 tracking-[0.12em] uppercase"
+              style={{ color: 'var(--ink-300)' }}>
+              Finance
             </div>
           </div>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-2 space-y-0.5">
+      {/* Linha divisória */}
+      <div className="mx-4 mb-2" style={{ height: '1px', background: 'var(--border)' }} />
+
+      {/* Navegação */}
+      <nav className="flex-1 px-3 py-1 space-y-0.5 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                isActive
-                  ? 'text-[#493ee5]'
-                  : 'text-[#464555]/70 hover:text-[#101c29]'
-              }`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? { background: 'rgba(73,62,229,0.09)' }
-                : {}
-            }
+            className="block"
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
+            {({ isActive }) => (
+              <div
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer"
+                style={{
+                  background: isActive ? 'var(--gold-subtle)' : 'transparent',
+                  color: isActive ? 'var(--ink-900)' : 'var(--ink-500)',
+                }}
+                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.03)'; }}
+                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+              >
+                <Icon
+                  className="w-4 h-4 shrink-0"
+                  style={{ color: isActive ? 'var(--gold)' : 'currentColor' }}
+                />
+                <span className="flex-1">{label}</span>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ background: 'var(--gold)' }} />
+                )}
+              </div>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      {/* Utilizador + Definições */}
-      <div className="p-3 border-t border-white/60">
+      {/* Linha divisória */}
+      <div className="mx-4 mt-2" style={{ height: '1px', background: 'var(--border)' }} />
+
+      {/* Rodapé */}
+      <div className="p-3 space-y-0.5">
+        <NavLink to="/settings" className="block">
+          {({ isActive }) => (
+            <div
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer"
+              style={{
+                background: isActive ? 'var(--gold-subtle)' : 'transparent',
+                color: isActive ? 'var(--ink-900)' : 'var(--ink-500)',
+              }}
+            >
+              <Settings className="w-4 h-4 shrink-0"
+                style={{ color: isActive ? 'var(--gold)' : 'currentColor' }} />
+              Definições
+            </div>
+          )}
+        </NavLink>
+
         {user && (
-          <div className="px-3.5 py-2 mb-1">
-            <p className="text-xs font-semibold text-[#101c29] truncate">{user.name}</p>
-            <p className="text-[11px] text-[#464555]/50 truncate">{user.email}</p>
+          <div className="flex items-center gap-2.5 px-3 py-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+              style={{ background: 'var(--ink-700)' }}>
+              {user.name?.charAt(0).toUpperCase() ?? '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold truncate leading-tight" style={{ color: 'var(--ink-900)' }}>
+                {user.name}
+              </p>
+              <p className="text-[10px] truncate leading-tight" style={{ color: 'var(--ink-300)' }}>
+                {user.email}
+              </p>
+            </div>
           </div>
         )}
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-              isActive ? 'text-[#493ee5]' : 'text-[#464555]/70 hover:text-[#101c29]'
-            }`
-          }
-          style={({ isActive }) => isActive ? { background: 'rgba(73,62,229,0.09)' } : {}}
-        >
-          <Settings className="w-4 h-4 shrink-0" />
-          Definições
-        </NavLink>
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs text-[#464555]/40 hover:text-[#ba1a1a] transition-colors mt-0.5"
-        >
-          Terminar sessão
+
+        <button onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors hover:bg-red-50 hover:text-red-500"
+          style={{ color: 'var(--ink-300)' }}>
+          <LogOut className="w-4 h-4 shrink-0" />
+          Sair
         </button>
       </div>
     </aside>

@@ -47,7 +47,7 @@ export function VerifyEmailPage() {
         className="w-full max-w-md rounded-3xl border border-white/60 p-10 text-center"
         style={{
           background: 'rgba(255,255,255,0.78)',
-          backdropFilter: 'blur(24px)',
+          
           boxShadow: '0 8px 40px rgba(73,62,229,0.10)',
         }}
       >
@@ -55,33 +55,33 @@ export function VerifyEmailPage() {
         <div className="flex items-center justify-center gap-2.5 mb-8">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #493ee5 0%, #635bff 100%)', boxShadow: '0 4px 12px rgba(73,62,229,0.3)' }}
+            style={{ background: 'var(--ink-900)' }}
           >
             <Lock className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-black tracking-tighter text-[#101c29]">
-            Gold<span className="text-[#493ee5]">Lock</span>
+          <span className="text-xl font-black tracking-tighter text-[var(--ink-900)]">
+            Gold<span className="text-[var(--gold)]">Lock</span>
           </span>
         </div>
 
         {/* Estado */}
         {status === 'loading' && (
           <>
-            <Loader2 className="w-12 h-12 text-[#493ee5] animate-spin mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-[#101c29] mb-2">A verificar email…</h2>
-            <p className="text-sm text-[#464555]/60">Aguarda um momento.</p>
+            <Loader2 className="w-12 h-12 text-[var(--gold)] animate-spin mx-auto mb-4" />
+            <h2 className="text-lg font-bold text-[var(--ink-900)] mb-2">A verificar email…</h2>
+            <p className="text-sm text-[var(--ink-500)]/60">Aguarda um momento.</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-[#101c29] mb-2">Email verificado!</h2>
-            <p className="text-sm text-[#464555]/70 mb-6">{message}</p>
+            <h2 className="text-lg font-bold text-[var(--ink-900)] mb-2">Email verificado!</h2>
+            <p className="text-sm text-[var(--ink-500)]/70 mb-6">{message}</p>
             <Link
               to="/login"
               className="inline-block px-6 py-2.5 rounded-xl text-white text-sm font-semibold"
-              style={{ background: 'linear-gradient(135deg, #493ee5 0%, #635bff 100%)' }}
+              style={{ background: 'var(--ink-900)' }}
             >
               Fazer login
             </Link>
@@ -91,11 +91,11 @@ export function VerifyEmailPage() {
         {status === 'error' && (
           <>
             <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold text-[#101c29] mb-2">Verificação falhada</h2>
-            <p className="text-sm text-[#464555]/70 mb-6">{message}</p>
+            <h2 className="text-lg font-bold text-[var(--ink-900)] mb-2">Verificação falhada</h2>
+            <p className="text-sm text-[var(--ink-500)]/70 mb-6">{message}</p>
             <Link
               to="/login"
-              className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold text-[#493ee5] border border-[#493ee5]/30"
+              className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold text-[var(--gold)] border border-[var(--gold)]/30"
               style={{ background: 'rgba(73,62,229,0.06)' }}
             >
               Voltar ao login

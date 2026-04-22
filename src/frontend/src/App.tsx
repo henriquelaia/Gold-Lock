@@ -15,6 +15,8 @@ import { GoalsPage }         from './pages/GoalsPage';
 import { AccountsPage }      from './pages/AccountsPage';
 import { IRSSimulatorPage }  from './pages/IRSSimulatorPage';
 import { SettingsPage }      from './pages/SettingsPage';
+import { InvestmentsPage }   from './pages/InvestmentsPage';
+import { LearnPage }         from './pages/LearnPage';
 
 function App() {
   return (
@@ -34,7 +36,9 @@ function App() {
             <Route path="/budgets"      element={<BudgetsPage />} />
             <Route path="/goals"        element={<GoalsPage />} />
             <Route path="/accounts"     element={<AccountsPage />} />
+            <Route path="/investments"  element={<InvestmentsPage />} />
             <Route path="/irs"          element={<IRSSimulatorPage />} />
+            <Route path="/learn"        element={<LearnPage />} />
             <Route path="/settings"     element={<SettingsPage />} />
           </Route>
         </Route>
