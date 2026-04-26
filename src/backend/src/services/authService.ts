@@ -516,3 +516,27 @@ export async function disableTotp(userId: string, password: string): Promise<voi
   // Invalidar todas as sessões por segurança
   await invalidateAllSessions(userId);
 }
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const result = await db.query(
+    'SELECT password_hash FROM users WHERE id = $1',
+    [userId]
+  );
+
+  if (result.rows.length === 0) throw new AppError('Utilizador não encontrado.', 404);
+
+  const valid = await bcrypt.compare(currentPassword, result.rows[0].password_hash);
+  if (!valid) throw new AppError('Password atual incorreta.', 401);
+
+  const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  await db.query(
+    'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+    [newHash, userId]
+  );
+
+  await invalidateAllSessions(userId);
+}

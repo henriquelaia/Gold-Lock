@@ -283,3 +283,21 @@ authRouter.post('/2fa/disable', authenticate, async (req: Request, res: Response
     next(err);
   }
 });
+
+// ── POST /api/auth/change-password ────────────────────────────────────────
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Password atual obrigatória.'),
+  newPassword: passwordSchema,
+});
+
+authRouter.post('/change-password', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+    await authService.changePassword(req.user!.id, currentPassword, newPassword);
+    res.json({ status: 'success', message: 'Password alterada com sucesso.' });
+  } catch (err) {
+    if (err instanceof z.ZodError) return zodError(res, err);
+    next(err);
+  }
+});

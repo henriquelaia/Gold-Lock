@@ -10,6 +10,7 @@ import {
   LogOut,
   TrendingUp,
   GraduationCap,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -24,7 +25,11 @@ const navItems = [
   { to: '/learn',        icon: GraduationCap,   label: 'Aprende' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -36,7 +41,7 @@ export function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div className="px-5 py-6">
+      <div className="px-5 py-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: 'var(--ink-900)' }}>
@@ -57,12 +62,16 @@ export function Sidebar() {
             </div>
           </div>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="p-1.5 rounded-lg transition-colors hover:bg-black/[0.04]"
+            style={{ color: 'var(--ink-400)' }}>
+            <X size={15} />
+          </button>
+        )}
       </div>
 
-      {/* Linha divisória */}
       <div className="mx-4 mb-2" style={{ height: '1px', background: 'var(--border)' }} />
 
-      {/* Navegação */}
       <nav className="flex-1 px-3 py-1 space-y-0.5 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
@@ -70,6 +79,7 @@ export function Sidebar() {
             to={to}
             end={to === '/'}
             className="block"
+            onClick={onClose}
           >
             {({ isActive }) => (
               <div
@@ -96,12 +106,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Linha divisória */}
       <div className="mx-4 mt-2" style={{ height: '1px', background: 'var(--border)' }} />
 
-      {/* Rodapé */}
       <div className="p-3 space-y-0.5">
-        <NavLink to="/settings" className="block">
+        <NavLink to="/settings" className="block" onClick={onClose}>
           {({ isActive }) => (
             <div
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 cursor-pointer"

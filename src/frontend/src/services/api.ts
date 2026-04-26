@@ -110,6 +110,8 @@ export const authApi = {
   setup2fa:            () => api.post('/auth/2fa/setup'),
   enable2fa:           (code: string) => api.post('/auth/2fa/enable', { code }),
   disable2fa:          (password: string) => api.post('/auth/2fa/disable', { password }),
+  changePassword:      (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', { currentPassword, newPassword }),
 };
 
 export const accountsApi = {
@@ -163,4 +165,11 @@ export const irsApi = {
 export const fiscalProfileApi = {
   get:    () => api.get('/fiscal-profile'),
   upsert: (data: Record<string, unknown>) => api.put('/fiscal-profile', data),
+};
+
+export const investmentsApi = {
+  list:   () => api.get('/investments'),
+  create: (data: Record<string, unknown>) => api.post('/investments', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/investments/${id}`, data),
+  remove: (id: string) => api.delete(`/investments/${id}`),
 };

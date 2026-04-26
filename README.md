@@ -19,7 +19,7 @@ Orientador: Professor Doutor Nuno Pombo
 | Base de Dados | PostgreSQL 16 |
 | Cache | Redis 7 |
 | Open Banking | Salt Edge API (PSD2) |
-| Autenticação | Supabase Auth (OAuth2 + 2FA) |
+| Autenticação | Custom JWT + Redis (2FA TOTP) |
 | Containerização | Docker + Docker Compose |
 
 ## Quick Start

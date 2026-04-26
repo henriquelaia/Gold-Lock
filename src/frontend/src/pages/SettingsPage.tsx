@@ -24,6 +24,30 @@ export function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
+  // Change password
+  const [currentPw, setCurrentPw]     = useState('');
+  const [newPw, setNewPw]             = useState('');
+  const [confirmPw, setConfirmPw]     = useState('');
+  const [changingPw, setChangingPw]   = useState(false);
+  const [pwMsg, setPwMsg]             = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPw !== confirmPw) { setPwMsg({ type: 'err', text: 'As passwords novas não coincidem.' }); return; }
+    if (newPw.length < 8) { setPwMsg({ type: 'err', text: 'A nova password deve ter pelo menos 8 caracteres.' }); return; }
+    setChangingPw(true);
+    setPwMsg(null);
+    try {
+      await authApi.changePassword(currentPw, newPw);
+      setCurrentPw(''); setNewPw(''); setConfirmPw('');
+      setPwMsg({ type: 'ok', text: 'Password alterada com sucesso. Por favor faz login novamente.' });
+    } catch {
+      setPwMsg({ type: 'err', text: 'Password atual incorreta ou requisitos não cumpridos.' });
+    } finally {
+      setChangingPw(false);
+    }
+  }
+
   // 2FA
   const [showTotpModal, setShowTotpModal] = useState(false);
   const [disablingTotp, setDisablingTotp] = useState(false);
@@ -139,18 +163,57 @@ export function SettingsPage() {
       {/* Tab: Segurança */}
       {tab === 'security' && (
         <GlassCard>
-          <h3 className="text-base font-bold text-[var(--ink-900)] mb-2">Segurança da conta</h3>
-          <p className="text-sm text-[var(--ink-500)]/60 mb-6">
-            Para alterar a password, utiliza o fluxo de recuperação de password.
-            Receberás um email com um link seguro (válido 1 hora).
+          <h3 className="text-base font-bold text-[var(--ink-900)] mb-1">Alterar Password</h3>
+          <p className="text-sm text-[var(--ink-500)]/60 mb-5">
+            A nova password deve ter pelo menos 8 caracteres, uma maiúscula, um número e um carácter especial.
           </p>
-          <a
-            href="/forgot-password"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[var(--gold)] border border-[var(--gold)]/20 transition-colors hover:bg-[var(--gold)]/5"
-          >
-            <Shield className="w-4 h-4" />
-            Alterar password por email
-          </a>
+          {pwMsg && (
+            <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${pwMsg.type === 'ok' ? 'text-green-700 bg-green-50' : 'text-[#ba1a1a] bg-[#ffdad6]'}`}>
+              {pwMsg.text}
+            </div>
+          )}
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">Password atual</label>
+              <input
+                type="password"
+                value={currentPw}
+                onChange={e => setCurrentPw(e.target.value)}
+                required
+                autoComplete="current-password"
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                style={{ background: 'rgba(0,0,0,0.03)' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">Nova password</label>
+              <input
+                type="password"
+                value={newPw}
+                onChange={e => setNewPw(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                style={{ background: 'rgba(0,0,0,0.03)' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[var(--ink-500)] mb-1.5 uppercase tracking-wider">Confirmar nova password</label>
+              <input
+                type="password"
+                value={confirmPw}
+                onChange={e => setConfirmPw(e.target.value)}
+                required
+                autoComplete="new-password"
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-[var(--gold)]/40 transition-colors"
+                style={{ background: 'rgba(0,0,0,0.03)' }}
+              />
+            </div>
+            <GlassButton type="submit" loading={changingPw}>
+              <Shield className="w-4 h-4" />
+              Alterar password
+            </GlassButton>
+          </form>
 
           <div className="mt-6 pt-6 border-t border-[var(--gold)]/10">
             <h4 className="text-sm font-semibold text-[var(--ink-900)] mb-1">Email verificado</h4>

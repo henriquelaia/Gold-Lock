@@ -8,8 +8,11 @@ import { authRouter } from './routes/auth.js';
 import { accountsRouter } from './routes/accounts.js';
 import { transactionsRouter } from './routes/transactions.js';
 import { budgetsRouter } from './routes/budgets.js';
+import { goalsRouter } from './routes/goals.js';
+import { investmentsRouter } from './routes/investments.js';
 import { irsRouter } from './routes/irs.js';
 import { categoriesRouter } from './routes/categories.js';
+import { fiscalProfileRouter } from './routes/fiscalProfile.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import './config/database.js';  // inicializar pool PostgreSQL
@@ -44,8 +47,11 @@ app.use('/api/auth', authRouter);
 app.use('/api/accounts', accountsRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/budgets', budgetsRouter);
+app.use('/api/goals', goalsRouter);
+app.use('/api/investments', investmentsRouter);
 app.use('/api/irs', irsRouter);
 app.use('/api/categories', categoriesRouter);
+app.use('/api/fiscal-profile', fiscalProfileRouter);
 
 // ── Error Handler ──
 app.use(errorHandler);
