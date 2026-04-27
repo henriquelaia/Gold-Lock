@@ -101,19 +101,17 @@ goalsRouter.delete('/:id', authenticate, async (req, res, next) => {
   }
 });
 
+const depositSchema = z.object({ amount: z.coerce.number().positive() });
+
 goalsRouter.put('/:id/deposit', authenticate, async (req, res, next) => {
   try {
-    const { amount } = req.body;
-    if (!amount || Number(amount) <= 0) {
-      res.status(400).json({ status: 'error', message: 'amount deve ser positivo' });
-      return;
-    }
+    const { amount } = depositSchema.parse(req.body);
     const result = await pool.query(
       `UPDATE savings_goals
        SET current_amount = LEAST(current_amount + $1, target_amount), updated_at = NOW()
        WHERE id = $2 AND user_id = $3
        RETURNING *`,
-      [Number(amount), req.params.id, req.user!.id]
+      [amount, req.params.id, req.user!.id]
     );
     if (result.rowCount === 0) {
       res.status(404).json({ status: 'error', message: 'Meta não encontrada' });
@@ -121,6 +119,7 @@ goalsRouter.put('/:id/deposit', authenticate, async (req, res, next) => {
     }
     res.json({ status: 'success', data: result.rows[0] });
   } catch (err) {
+    if (err instanceof z.ZodError) return next(new AppError(err.errors[0].message, 400));
     next(err);
   }
 });
