@@ -56,15 +56,6 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
   );
 }
 
-interface Account {
-  id: string;
-  account_name?: string;
-  bank_name?: string;
-  balance: number;
-  account_type?: string;
-  currency?: string;
-}
-
 interface Investment {
   id: string;
   quantity: number;
@@ -105,7 +96,7 @@ export function DashboardPage() {
   const monthSavings = monthIncome - monthExpenses;
   const savingsRate = monthIncome > 0 ? ((monthSavings / monthIncome) * 100).toFixed(0) : '0';
 
-  const totalBalance = (accounts as Account[]).reduce((s, a) => s + Number(a.balance ?? 0), 0);
+  const totalBalance = accounts.reduce((s, a) => s + Number(a.balance ?? 0), 0);
 
   const totalPortfolioValue = (investments as Investment[]).reduce((s, inv) => {
     const val = Number(inv.quantity) * Number(inv.purchase_price);
@@ -205,8 +196,8 @@ export function DashboardPage() {
             </p>
             <p className="text-xs mt-2 flex items-center gap-1 font-medium" style={{ color: 'rgba(255,255,255,0.40)' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-              {(accounts as Account[]).length > 0
-                ? `${(accounts as Account[]).length} conta${(accounts as Account[]).length > 1 ? 's' : ''} ligada${(accounts as Account[]).length > 1 ? 's' : ''}`
+              {accounts.length > 0
+                ? `${accounts.length} conta${accounts.length > 1 ? 's' : ''} ligada${accounts.length > 1 ? 's' : ''}`
                 : 'Sem contas ligadas'}
             </p>
           </div>
@@ -354,8 +345,8 @@ export function DashboardPage() {
               </p>
             ) : recentTxs.map((tx: {
               id: string; description: string; transaction_date: string;
-              amount: number; category_icon?: string; category_color?: string;
-              category_name?: string; is_recurring?: boolean;
+              amount: string; category_icon?: string | null; category_color?: string | null;
+              category_name?: string | null; is_recurring?: boolean;
             }, i: number) => (
               <motion.div key={tx.id}
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
@@ -403,13 +394,13 @@ export function DashboardPage() {
               </button>
             </div>
             <div className="px-4 py-3 space-y-2.5">
-              {(accounts as Account[]).length === 0 ? (
+              {accounts.length === 0 ? (
                 <button onClick={() => navigate('/accounts')}
                   className="w-full text-xs text-center py-3 rounded-xl transition-colors hover:opacity-80"
                   style={{ background: 'var(--gold-subtle)', color: 'var(--gold)' }}>
                   + Ligar conta bancária
                 </button>
-              ) : (accounts as Account[]).map((acc, i) => (
+              ) : accounts.map((acc, i) => (
                 <motion.div key={acc.id}
                   initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.40 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
@@ -432,10 +423,10 @@ export function DashboardPage() {
                 </motion.div>
               ))}
             </div>
-            {(accounts as Account[]).length > 0 && totalBalance > 0 && (
+            {accounts.length > 0 && totalBalance > 0 && (
               <div className="px-4 pb-3">
                 <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
-                  {(accounts as Account[]).map((acc, i) => (
+                  {accounts.map((acc, i) => (
                     <div key={acc.id}
                       style={{ width: `${(Number(acc.balance) / totalBalance) * 100}%`, background: BANK_COLORS[i % BANK_COLORS.length] }}
                       className="rounded-full" />

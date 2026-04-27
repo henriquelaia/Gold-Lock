@@ -39,6 +39,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - SALT_EDGE_APP_ID=${SALT_EDGE_APP_ID}
       - SALT_EDGE_SECRET=${SALT_EDGE_SECRET}
+      - SALT_EDGE_BASE_URL=https://www.saltedge.com/api/v6
       - ML_SERVICE_URL=http://ml-service:5000
       - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_change_me}
     depends_on:

@@ -8,7 +8,7 @@ A transformação digital do setor financeiro tem vindo a alterar profundamente 
 
 No mercado internacional, soluções como o Copilot Money, Monarch Money, Treasury e Origin Financial têm demonstrado o potencial desta abordagem, combinando agregação bancária com categorização inteligente de transações, orçamentação e planeamento financeiro~\cite{copilot2024,monarch2024}. Contudo, estas plataformas são predominantemente orientadas ao mercado norte-americano, não contemplando as especificidades do ecossistema financeiro português, nomeadamente a integração com o sistema fiscal do \ac{IRS}, a rede \ac{SIBS}/Multibanco e os hábitos de consumo nacionais.
 
-Em Portugal, embora existam soluções como o Moey! (do Crédito Agrícola) e a presença de neobancos europeus como o Revolut e o N26, nenhuma plataforma oferece simultaneamente: agregação Open Banking de bancos portugueses, categorização automática de transações com \ac{ML} adaptada ao contexto português, e simulação fiscal de \ac{IRS}. Esta lacuna no mercado constitui a oportunidade que este projeto pretende explorar.
+Em Portugal, embora existam soluções como o Moey! (do Crédito Agrícola) e a presença de neobancos europeus como o Revolut e o N26, nenhuma plataforma oferece simultaneamente: agregação Open Banking de bancos portugueses, categorização automática de transações com \ac{ML} adaptada ao contexto português, simulação fiscal de \ac{IRS} e acompanhamento de carteira de investimentos de múltiplas corretoras (XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic, ByBit EU) num único ponto de acesso. Esta lacuna no mercado, comparável ao que a plataforma Getquin oferece internacionalmente, constitui a oportunidade que este projeto pretende explorar.
 
 O presente projeto, desenvolvido no âmbito da unidade curricular de Projeto do curso de Engenharia Informática da \ac{UBI}, propõe a conceção e implementação de uma plataforma web de gestão financeira pessoal (\ac{PFM}) especificamente desenhada para o mercado português, tirando partido das mais recentes tecnologias web, \ac{IA} e Open Banking.
 
@@ -30,7 +30,7 @@ A motivação para este projeto decorre de três fatores principais:
 
 \subsection{Objetivo Geral}
 
-Desenvolver um protótipo funcional de uma plataforma web de gestão financeira pessoal, focada no mercado português, que integre Open Banking (\ac{PSD2}), categorização automática de transações com \ac{IA} e simulação fiscal de \ac{IRS}.
+Desenvolver um protótipo funcional de uma plataforma web de gestão financeira pessoal, focada no mercado português, que integre Open Banking (\ac{PSD2}), categorização automática de transações com \ac{IA}, simulação fiscal de \ac{IRS} e acompanhamento de carteira de investimentos de múltiplas corretoras com preços em tempo real.
 
 \subsection{Objetivos Específicos}
 
@@ -41,6 +41,7 @@ Desenvolver um protótipo funcional de uma plataforma web de gestão financeira 
     \item Desenvolver um módulo de categorização automática de transações com \ac{ML}.
     \item Implementar um simulador de \ac{IRS} baseado nas regras fiscais portuguesas vigentes.
     \item Criar uma interface de utilizador com design Liquid Glass, priorizando usabilidade e acessibilidade (\ac{WCAG} AA).
+    \item Desenvolver um módulo de carteira de investimentos com importação de dados de múltiplas corretoras (XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic, ByBit~EU), consulta de preços de ações, ETFs e criptomoedas em tempo real e análise de desempenho do portfólio.
     \item Avaliar o sistema com utilizadores reais através de testes de usabilidade (\ac{SUS}) e métricas de performance.
 \end{enumerate}
 
@@ -48,13 +49,13 @@ Desenvolver um protótipo funcional de uma plataforma web de gestão financeira 
 \section{Metodologia}
 \label{sec:metodologia}
 
-O projeto segue uma metodologia Scrum adaptada para desenvolvimento individual, organizada em 8 sprints de duas semanas, cobrindo o período de abril a julho de 2026. O ambiente de desenvolvimento utiliza Docker e Docker Compose para garantir paridade entre ambientes, seguindo os princípios do Twelve-Factor App. A metodologia divide-se em quatro fases:
+O projeto segue uma metodologia Scrum adaptada para desenvolvimento individual, organizada em 10 sprints de duas semanas, cobrindo o período de abril a setembro de 2026. O ambiente de desenvolvimento utiliza Docker e Docker Compose para garantir paridade entre ambientes, seguindo os princípios do Twelve-Factor App. A metodologia divide-se em quatro fases:
 
 \begin{enumerate}
     \item \textbf{Fase 1 --- Investigação e Planeamento (Sprint 1):} Levantamento do estado da arte, análise comparativa de concorrentes, definição de requisitos, desenho da arquitetura e criação de protótipos no Figma.
-    \item \textbf{Fase 2 --- Desenvolvimento do \ac{MVP} (Sprints 2--6):} Setup do ambiente Docker, implementação iterativa das funcionalidades core, incluindo autenticação, integração Open Banking, dashboard, categorização com \ac{ML}, simulador de \ac{IRS} e design Liquid Glass.
-    \item \textbf{Fase 3 --- Testes e Avaliação (Sprint 7):} Testes de usabilidade com 10 a 15 utilizadores, questionário \ac{SUS}, testes de performance e validação do modelo de \ac{ML}.
-    \item \textbf{Fase 4 --- Documentação e Entrega (Sprint 8):} Redação do relatório final, preparação da apresentação e defesa do projeto.
+    \item \textbf{Fase 2 --- Desenvolvimento do \ac{MVP} (Sprints 2--9):} Setup do ambiente Docker, implementação iterativa das funcionalidades core, incluindo autenticação, integração Open Banking, dashboard, categorização com \ac{ML}, orçamentos, metas de poupança, simulador de \ac{IRS}, \ac{IA} de otimização fiscal e design Liquid Glass.
+    \item \textbf{Fase 3 --- Carteira de Investimentos e Testes (Sprint 10):} Implementação do módulo de carteira de investimentos com importação CSV e preços em tempo real; testes de usabilidade com 10 a 15 utilizadores, questionário \ac{SUS}, testes de performance e validação dos modelos de \ac{ML}.
+    \item \textbf{Fase 4 --- Documentação e Entrega (Sprint 10, em paralelo):} Redação do relatório final, preparação da apresentação e defesa do projeto.
 \end{enumerate}
 
 

@@ -41,6 +41,7 @@ Base de Dados & PostgreSQL & Robusto, relacional, ideal para dados financeiros \
 Cache & Redis & Sessões, rate limiting, cache de dados Open Banking \\
 IA/ML & Python (scikit-learn) & Classificação de transações e otimização fiscal própria, desenvolvida sem dependência de serviços externos \\
 Open Banking & Salt Edge \ac{API} & Cobertura PT, sandbox gratuita, boa documentação \\
+Preços de Mercado & yfinance + CoinGecko \ac{API} & Consulta de preços de ações, ETFs e criptomoedas sem custos; cache Redis (TTL 30s) para minimizar latência e \textit{rate limiting} das APIs externas \\
 Autenticação & JWT (HS256) + bcrypt + Redis & Implementação própria (\textit{self-hosted}), sem dependências externas; bcrypt (cost=12), refresh tokens UUID em Redis, \ac{TOTP} via speakeasy \\
 Containerização & Docker + Docker Compose & Ambiente reproduzível, isolamento de serviços, parity dev/prod \\
 Deploy & Railway ou Render & Deploy simples, tier gratuito para \ac{MVP} \\
@@ -74,6 +75,9 @@ As principais entidades do modelo são:
     \item \textbf{IRSSimulation:} Guarda os parâmetros e resultados das simulações de \ac{IRS}.
     \item \textbf{FiscalProfile:} Armazena os dados fiscais do utilizador introduzidos manualmente: rendimento bruto anual, contribuições para a Segurança Social, estado civil e número de dependentes. Estes dados são necessários para o cálculo personalizado do \ac{IRS} estimado.
     \item \textbf{DeductionAlert:} Regista os alertas gerados pelo sistema relativos a deduções identificadas nas transações (despesas dedutíveis detetadas), limites legais próximos e recomendações de otimização fiscal.
+    \item \textbf{InvestmentPortfolio:} Agrupa as posições de investimento de um utilizador, identificada pela corretora de origem (XTB, Trading\,212, Lightyear, etc.).
+    \item \textbf{InvestmentTransaction:} Regista cada operação de investimento importada (compra, venda, dividendo), com data, ativo, quantidade e preço unitário.
+    \item \textbf{InvestmentPosition:} Representa a posição atual num ativo (símbolo, quantidade detida, custo médio de aquisição, valor atual calculado em tempo real via API de preços).
 \end{itemize}
 
 
@@ -140,7 +144,25 @@ O fluxo de dados do pipeline é o seguinte:
 Os novos endpoints expostos pelo \texttt{ml-service} e consumidos pelo backend Node.js são: \texttt{POST /fiscal/classify} (classificação de transações), \texttt{POST /fiscal/simulate} (cálculo do \ac{IRS} estimado) e \texttt{POST /fiscal/optimize} (comparação de cenários e recomendações).
 
 
+\section{Módulo de Carteira de Investimentos}
+\label{sec:arq-investimentos}
+
+O módulo de carteira de investimentos agrega posições de múltiplas corretoras (XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic, ByBit EU) numa única interface, com preços em tempo real e análise de desempenho de portfólio. A arquitetura assenta em três componentes principais:
+
+\begin{enumerate}
+    \item \textbf{Importação de dados (CSV + API):} Parsers específicos para os formatos CSV de exportação de cada corretora. As corretoras XTB (xAPI) e Trading\,212, que disponibilizam APIs públicas, suportam adicionalmente importação automática de posições e transações sem necessidade de exportação manual.
+    \item \textbf{Serviço de preços (\texttt{ml-service} Python):} O serviço Python existente é estendido com dois novos endpoints: \texttt{GET /prices/quote} (via \texttt{yfinance}) para ações e ETFs cotados em bolsa, e \texttt{GET /prices/crypto} (via CoinGecko \ac{API}) para criptomoedas. Os preços são armazenados em cache Redis com TTL de 30 segundos para reduzir a latência e respeitar os limites de taxa das APIs externas.
+    \item \textbf{Serviço de portfólio (\texttt{portfolioService.ts}):} Agrega as posições abertas de todas as corretoras, calcula o P\&L (lucro/prejuízo) por ativo e total da carteira, e fornece métricas de diversificação por classe de ativo (ações, ETFs, criptomoedas, obrigações) e por geografia.
+\end{enumerate}
+
+O fluxo de dados do módulo é o seguinte:
+
+\[
+\text{CSV / API Corretora} \xrightarrow{\text{import}} \text{InvestmentTransactions (BD)} \xrightarrow{\text{aggregate}} \text{InvestmentPositions} \xrightarrow{+ \text{ preço em tempo real}} \text{Carteira valorizada}
+\]
+
+
 \section{Conclusões}
 \label{sec:arq-conclusoes}
 
-A arquitetura proposta garante a separação clara de responsabilidades, a escalabilidade do sistema e a facilidade de manutenção. A escolha de uma stack unificada em TypeScript (frontend e backend) reduz a complexidade do desenvolvimento, enquanto a utilização de Python para o módulo de \ac{ML} e de otimização fiscal permite tirar partido do ecossistema científico da linguagem. O pipeline de \ac{IA} fiscal, inteiramente desenvolvido no projeto sem dependências de \ac{LLM}s externos, constitui o contributo técnico mais relevante da arquitetura, combinando aprendizagem automática supervisionada, motor de regras determinístico e algoritmo de otimização num fluxo coeso e auditável. O design Liquid Glass diferencia a plataforma visualmente dos concorrentes, contribuindo para uma experiência de utilizador premium.
+A arquitetura proposta garante a separação clara de responsabilidades, a escalabilidade do sistema e a facilidade de manutenção. A escolha de uma stack unificada em TypeScript (frontend e backend) reduz a complexidade do desenvolvimento, enquanto a utilização de Python para o módulo de \ac{ML} e de otimização fiscal permite tirar partido do ecossistema científico da linguagem. O pipeline de \ac{IA} fiscal, inteiramente desenvolvido no projeto sem dependências de \ac{LLM}s externos, e o módulo de carteira de investimentos com integração multi-corretora e preços em tempo real constituem os contributos técnicos mais relevantes da arquitetura. A combinação de aprendizagem automática supervisionada, motor de regras determinístico, algoritmo de otimização fiscal e agregação de portfólios de investimento, tudo desenvolvido sem dependências de serviços externos pagos, posiciona o Gold Lock como uma plataforma diferenciadora no mercado português. O design Liquid Glass complementa a profundidade técnica com uma experiência de utilizador de nível premium.

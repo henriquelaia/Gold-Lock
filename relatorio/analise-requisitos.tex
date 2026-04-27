@@ -24,13 +24,15 @@ Os requisitos funcionais estão organizados em oito módulos, correspondentes à
 \textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
 \midrule
 RF01 & O sistema deve permitir registo com email e password & Must & 3 \\
-RF02 & O sistema deve suportar login via OAuth2 (Google) & Must & 3 \\
+RF02 & O sistema deve suportar login via OAuth2 (Google) & Won't & --- \\
 RF03 & O sistema deve implementar autenticação \ac{2FA} (TOTP) & Should & 3 \\
 RF04 & O utilizador deve poder editar o seu perfil (nome, avatar, moeda) & Must & 3 \\
 RF05 & O sistema deve permitir recuperação de password por email & Must & 3 \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\noindent\small\textit{\textbf{RF02 (Won't):} O suporte a OAuth2 (Google) foi reclassificado como \textit{Won't} durante o desenvolvimento. A autenticação própria por email, password, verificação de email e 2FA TOTP (RF01, RF03, RF05) satisfaz todos os requisitos de segurança sem dependência de serviços externos de autenticação.}
 
 \subsection{Módulo 2 --- Open Banking e Contas}
 
@@ -145,9 +147,9 @@ RF32 & O simulador deve comparar \ac{IRS} conjunto e separado (casais) & Could &
 \toprule
 \textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
 \midrule
-RF33 & O sistema deve enviar notificações por email para alertas de orçamento & Should & 8 \\
-RF34 & O sistema deve notificar sobre transações invulgares & Could & 8 \\
-RF35 & O sistema deve enviar alertas sazonais (prazo IRS, IMI, IUC) & Could & 8 \\
+RF33 & O sistema deve enviar notificações por email para alertas de orçamento & Should & 9 \\
+RF34 & O sistema deve notificar sobre transações invulgares & Could & 9 \\
+RF35 & O sistema deve enviar alertas sazonais (prazo IRS, IMI, IUC) & Could & 9 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -165,12 +167,36 @@ Este módulo introduz um sistema de \ac{IA} próprio, desenvolvido integralmente
 \toprule
 \textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
 \midrule
-RF36 & O sistema deve classificar automaticamente as transações da plataforma como dedutíveis ou não dedutíveis para efeitos de \ac{IRS} (saúde, educação, habitação, encargos gerais) & Must & 9 \\
-RF37 & O sistema deve calcular o \ac{IRS} estimado integrando as deduções identificadas nas transações com os dados da Segurança Social e rendimentos introduzidos pelo utilizador & Must & 9 \\
-RF38 & O sistema deve apresentar ao utilizador uma lista detalhada das despesas dedutíveis identificadas nas transações históricas, com valores acumulados por categoria de dedução & Must & 9 \\
-RF39 & O sistema deve comparar cenários fiscais alternativos (tributação individual vs.\ conjunta para casais) e recomendar a opção mais vantajosa com base nos rendimentos declarados & Should & 9 \\
-RF40 & O sistema deve alertar o utilizador quando as deduções acumuladas numa categoria estiverem próximas do limite legal estabelecido no \ac{CIRS} (e.g.\ saúde: 15\%, limite 1000\,€) & Should & 9 \\
-RF41 & O sistema deve estimar o impacto fiscal de despesas futuras planeadas no \ac{IRS} do ano seguinte, com base nos padrões de consumo históricos & Could & 9 \\
+RF36 & O sistema deve classificar automaticamente as transações da plataforma como dedutíveis ou não dedutíveis para efeitos de \ac{IRS} (saúde, educação, habitação, encargos gerais) & Must & 8 \\
+RF37 & O sistema deve calcular o \ac{IRS} estimado integrando as deduções identificadas nas transações com os dados da Segurança Social e rendimentos introduzidos pelo utilizador & Must & 8 \\
+RF38 & O sistema deve apresentar ao utilizador uma lista detalhada das despesas dedutíveis identificadas nas transações históricas, com valores acumulados por categoria de dedução & Must & 8 \\
+RF39 & O sistema deve comparar cenários fiscais alternativos (tributação individual vs.\ conjunta para casais) e recomendar a opção mais vantajosa com base nos rendimentos declarados & Should & 8 \\
+RF40 & O sistema deve alertar o utilizador quando as deduções acumuladas numa categoria estiverem próximas do limite legal estabelecido no \ac{CIRS} (e.g.\ saúde: 15\%, limite 1000\,€) & Should & 8 \\
+RF41 & O sistema deve estimar o impacto fiscal de despesas futuras planeadas no \ac{IRS} do ano seguinte, com base nos padrões de consumo históricos & Could & 8 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Módulo 9 --- Carteira de Investimentos}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionais do módulo de carteira de investimentos.}
+\label{tab:rf-investimentos}
+\small
+\begin{tabularx}{\textwidth}{l X c c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Prioridade} & \textbf{Sprint} \\
+\midrule
+RF42 & O sistema deve permitir importar transações de investimento via CSV de corretoras: XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic e ByBit EU & Must & 10 \\
+RF43 & O sistema deve mostrar a carteira de investimentos com posições abertas, custo médio de aquisição, valor atual e P\&L (lucro/prejuízo) por ativo e total & Must & 10 \\
+RF44 & O sistema deve consultar preços de ações e ETFs em tempo real via Yahoo Finance (\texttt{yfinance}) & Must & 10 \\
+RF45 & O sistema deve consultar preços de criptomoedas em tempo real via CoinGecko \ac{API} & Must & 10 \\
+RF46 & O sistema deve apresentar um gráfico de evolução do valor total da carteira ao longo do tempo & Must & 10 \\
+RF47 & O sistema deve suportar múltiplas classes de ativos: ações, ETFs, criptomoedas e obrigações & Should & 10 \\
+RF48 & O sistema deve integrar as APIs da XTB (xAPI) e da Trading\,212 para importação automática de posições e transações, sem necessidade de exportação manual de CSV & Should & 10 \\
+RF49 & O sistema deve apresentar análise de diversificação da carteira por classe de ativo, setor e geografia & Should & 10 \\
+RF50 & O valor total da carteira de investimentos deve ser integrado no saldo total do dashboard principal & Could & 10 \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -257,6 +283,22 @@ RNF22 & Correção do motor de regras \ac{IRS} validada contra a calculadora ofi
 \end{tabularx}
 \end{table}
 
+\subsection{Investimentos}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos não-funcionais do módulo de carteira de investimentos.}
+\label{tab:rnf-investimentos}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{ID} & \textbf{Descrição} & \textbf{Métrica} \\
+\midrule
+RNF23 & Latência de atualização de preços de mercado (cache Redis) & $< 30$ segundos \\
+RNF24 & Suporte a formatos de importação CSV de corretoras & Mín. 6 formatos validados \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 
 \section{Diagrama de Casos de Uso}
 \label{sec:req-casos-uso}
@@ -275,4 +317,4 @@ A Figura~\ref{fig:casos-uso} apresenta o diagrama de casos de uso principal do s
 \section{Conclusões}
 \label{sec:req-conclusoes}
 
-A análise de requisitos resultou na identificação de 41 requisitos funcionais e 22 requisitos não-funcionais, organizados em 8 módulos funcionais. A priorização MoSCoW permite focar o desenvolvimento nos requisitos \textit{Must} durante as primeiras sprints, garantindo a entrega de um \ac{MVP} funcional, enquanto os requisitos \textit{Should} e \textit{Could} são implementados progressivamente conforme a disponibilidade de tempo. O Módulo 8, dedicado à \ac{IA} de Otimização Fiscal, representa o contributo técnico mais diferenciador do projeto, introduzindo um sistema de \ac{IA} desenvolvido integralmente sem dependência de serviços externos, fundamentado nas regras oficiais do \ac{CIRS} 2025.
+A análise de requisitos resultou na identificação de 50 requisitos funcionais e 24 requisitos não-funcionais, organizados em 9 módulos funcionais. A priorização MoSCoW permite focar o desenvolvimento nos requisitos \textit{Must} durante as primeiras sprints, garantindo a entrega de um \ac{MVP} funcional, enquanto os requisitos \textit{Should} e \textit{Could} são implementados progressivamente conforme a disponibilidade de tempo. Os Módulos 8 e 9 representam os contributos técnicos mais diferenciadores do projeto: o Módulo 8 (\ac{IA} de Otimização Fiscal) introduz um sistema de \ac{IA} desenvolvido integralmente sem dependência de serviços externos, fundamentado nas regras oficiais do \ac{CIRS} 2025; o Módulo 9 (Carteira de Investimentos) agrega dados de seis corretoras numa única plataforma com preços em tempo real, aproximando o Gold Lock de plataformas internacionais como o Getquin, mas com adaptação profunda ao mercado português.

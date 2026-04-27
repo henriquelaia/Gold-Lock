@@ -328,6 +328,60 @@ O otimizador (\texttt{fiscal\_optimizer.py}) gera e compara múltiplos cenários
 % TODO: Adicionar excertos de código quando implementado (Sprint 9)
 
 
+\section{Módulo de Carteira de Investimentos}
+\label{sec:impl-investimentos}
+
+O módulo de carteira de investimentos implementa a agregação de portfólios de múltiplas corretoras numa única plataforma, com consulta de preços em tempo real e análise de desempenho. A implementação divide-se em três componentes principais.
+
+\subsection{Importação de Dados por CSV e API}
+\label{sec:impl-invest-import}
+
+Cada corretora exporta os dados de transações num formato CSV distinto. São implementados parsers específicos para os formatos de exportação da XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic e ByBit EU, normalizando os dados para o modelo de dados interno (\texttt{InvestmentTransaction}). Para as corretoras com API pública disponível (XTB xAPI e Trading\,212 REST API), é implementada adicionalmente a importação automática periódica, eliminando a necessidade de exportação manual.
+
+\subsection{Preços em Tempo Real}
+\label{sec:impl-invest-prices}
+
+O serviço Python existente (\texttt{ml-service}) é estendido com dois novos módulos de consulta de preços:
+
+\begin{lstlisting}[caption={Consulta de preços de ações/ETFs via yfinance (price\_service.py).},label={lst:yfinance},language=Python]
+import yfinance as yf
+from flask import Blueprint, request, jsonify
+
+prices_bp = Blueprint('prices', __name__)
+
+@prices_bp.route('/prices/quote')
+def get_quotes():
+    symbols = request.args.get('symbols', '').split(',')
+    tickers = yf.Tickers(' '.join(symbols))
+    result = {}
+    for symbol in symbols:
+        info = tickers.tickers[symbol].fast_info
+        result[symbol] = {
+            'price': info.last_price,
+            'currency': info.currency,
+            'change_pct': (info.last_price - info.previous_close)
+                          / info.previous_close * 100
+        }
+    return jsonify(result)
+\end{lstlisting}
+
+Os preços são armazenados em cache Redis com TTL de 30 segundos, evitando chamadas repetidas às APIs externas e respeitando os limites de taxa (\textit{rate limiting}).
+
+\subsection{Análise de Carteira e P\&L}
+\label{sec:impl-invest-portfolio}
+
+O \texttt{portfolioService.ts} agrega as \texttt{InvestmentTransactions} por ativo, calculando a posição atual (quantidade detida e custo médio de aquisição), o valor de mercado atual (via preço em tempo real) e o P\&L realizado e não realizado. O dashboard de investimentos apresenta:
+
+\begin{itemize}
+    \item Carteira total valorizada com evolução histórica (gráfico Recharts)
+    \item Posições detalhadas por ativo com P\&L individual
+    \item Análise de diversificação por classe de ativo e por corretora
+    \item Integração do valor total de investimentos no saldo consolidado do dashboard principal
+\end{itemize}
+
+% TODO: Adicionar screenshots e excertos de código reais após implementação (Sprint 10)
+
+
 \section{Conclusões}
 \label{sec:impl-conclusoes}
 

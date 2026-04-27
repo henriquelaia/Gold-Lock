@@ -18,14 +18,14 @@ const TYPE_OPTIONS = [
 interface Transaction {
   id: string;
   description: string;
-  amount: number;
+  amount: string;
   transaction_date: string;
   is_recurring?: boolean;
-  ml_confidence?: number;
-  category_name?: string;
-  category_icon?: string;
-  category_color?: string;
-  bank_name?: string;
+  ml_confidence?: string | null;
+  category_name?: string | null;
+  category_icon?: string | null;
+  category_color?: string | null;
+  bank_name?: string | null;
   irs_deduction_category?: string;
 }
 
@@ -34,7 +34,7 @@ interface Category { id: string; name_pt: string; }
 export function TransactionsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'' | 'income' | 'expense'>('');
   const [page, setPage] = useState(1);
   const PER_PAGE = 20;
 
@@ -118,7 +118,7 @@ export function TransactionsPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           <Filter size={13} style={{ color: 'var(--ink-400)' }} />
-          <select value={typeFilter} onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
+          <select value={typeFilter} onChange={e => { setTypeFilter(e.target.value as '' | 'income' | 'expense'); setPage(1); }}
             className="text-xs px-3 py-1.5 rounded-xl border outline-none cursor-pointer font-medium"
             style={{ background: typeFilter ? 'var(--gold-subtle)' : 'rgba(0,0,0,0.03)',
               borderColor: typeFilter ? 'var(--gold-border)' : 'rgba(0,0,0,0.08)',
@@ -197,15 +197,15 @@ export function TransactionsPage() {
                     </div>
                   )}
 
-                  {tx.ml_confidence !== undefined && (
+                  {tx.ml_confidence != null && (
                     <div className="hidden lg:block text-right">
                       <div className="flex items-center gap-1 justify-end">
                         <div className="w-12 h-1.5 rounded-full overflow-hidden bg-black/[0.06]">
                           <div className="h-full rounded-full"
-                            style={{ width: `${tx.ml_confidence * 100}%`, background: tx.ml_confidence > 0.9 ? '#22c55e' : '#f59e0b' }} />
+                            style={{ width: `${Number(tx.ml_confidence) * 100}%`, background: Number(tx.ml_confidence) > 0.9 ? '#22c55e' : '#f59e0b' }} />
                         </div>
                         <span className="text-[10px]" style={{ color: 'var(--ink-400)' }}>
-                          {Math.round(tx.ml_confidence * 100)}%
+                          {Math.round(Number(tx.ml_confidence) * 100)}%
                         </span>
                       </div>
                       <p className="text-[10px]" style={{ color: 'var(--ink-300)' }}>ML</p>
