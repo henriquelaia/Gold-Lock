@@ -10,6 +10,8 @@ export const db = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
+export const pool = db; // alias para compatibilidade com rotas que importam `pool`
+
 // PostgreSQL é obrigatório — falha no arranque = processo termina (fail-fast).
 db.connect()
   .then(client => {
