@@ -16,13 +16,12 @@ import { useInvestments } from '../hooks/useInvestments';
 import { useBudgets } from '../hooks/useBudgets';
 import { useGoals } from '../hooks/useGoals';
 import { useAccounts } from '../hooks/useAccounts';
+import { EUR_RATE } from '../config/constants';
 
 const PT_MONTHS: Record<number, string> = {
   1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
   7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez',
 };
-
-const EUR_RATE = 0.92;
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },

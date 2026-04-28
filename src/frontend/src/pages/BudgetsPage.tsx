@@ -119,6 +119,7 @@ function CreateBudgetModal({ onClose }: { onClose: () => void }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.amountLimit) { setError('Nome e limite são obrigatórios'); return; }
+    if (Number(form.amountLimit) <= 0) { setError('O limite deve ser maior que zero'); return; }
     create(
       {
         name: form.name,

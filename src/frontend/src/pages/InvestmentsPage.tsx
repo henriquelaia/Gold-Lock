@@ -11,7 +11,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
-const EUR_RATE = 0.92;
+import { EUR_RATE } from '../config/constants';
 
 const eur = (v: number) =>
   new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
@@ -39,6 +39,7 @@ interface Investment {
   type: InvestmentType;
   quantity: number;
   purchase_price: number;
+  current_price?: number;
   currency?: string;
   risk_level: RiskLevel;
   annual_rate?: number;
@@ -98,6 +99,10 @@ function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     if (!form.name || !form.quantity || !form.purchasePrice) {
       setError('Nome, quantidade e preço são obrigatórios');
+      return;
+    }
+    if (Number(form.quantity) <= 0 || Number(form.purchasePrice) <= 0) {
+      setError('Quantidade e preço devem ser maiores que zero');
       return;
     }
     create(
@@ -347,12 +352,41 @@ export function InvestmentsPage() {
                   Rentabilidade Total
                 </span>
                 <div>
-                  <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--ink-400)' }}>
-                    — em breve
-                  </p>
-                  <p className="text-xs mt-1.5 flex items-center gap-1 font-medium" style={{ color: 'var(--ink-300)' }}>
-                    Preços em tempo real a ser implementados
-                  </p>
+                  {(() => {
+                    const plInvs = invList.filter(i => i.risk_level !== 'guaranteed' && i.current_price != null);
+                    if (plInvs.length === 0) {
+                      return (
+                        <>
+                          <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--ink-400)' }}>—</p>
+                          <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--ink-300)' }}>
+                            Preço de compra · preços reais no Sprint 10
+                          </p>
+                        </>
+                      );
+                    }
+                    const totalPL = plInvs.reduce((s, inv) => {
+                      const cost = Number(inv.quantity) * Number(inv.purchase_price);
+                      const value = Number(inv.quantity) * Number(inv.current_price!);
+                      return s + (inv.currency === 'USD' ? (value - cost) * EUR_RATE : value - cost);
+                    }, 0);
+                    const totalCost = plInvs.reduce((s, inv) => {
+                      const cost = Number(inv.quantity) * Number(inv.purchase_price);
+                      return s + (inv.currency === 'USD' ? cost * EUR_RATE : cost);
+                    }, 0);
+                    const plPct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+                    return (
+                      <>
+                        <p className="text-[22px] font-black tabular-nums leading-none"
+                          style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
+                          {totalPL >= 0 ? '+' : ''}{eur(totalPL)}
+                        </p>
+                        <p className="text-xs mt-1.5 font-medium"
+                          style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
+                          {plPct >= 0 ? '+' : ''}{plPct.toFixed(2)}% · preço na compra
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               </motion.div>
 
@@ -496,10 +530,24 @@ export function InvestmentsPage() {
                         <div className="col-span-2 text-right">
                           {isGuaranteed ? (
                             <p className="text-xs font-medium" style={{ color: 'var(--ink-300)' }}>—</p>
-                          ) : (
-                            <p className="text-[10px] font-medium" style={{ color: 'var(--ink-300)' }}>
-                              em breve
-                            </p>
+                          ) : inv.current_price != null ? (() => {
+                            const cost = Number(inv.quantity) * Number(inv.purchase_price);
+                            const value = Number(inv.quantity) * Number(inv.current_price);
+                            const pl = inv.currency === 'USD' ? (value - cost) * EUR_RATE : value - cost;
+                            const plPct = cost > 0 ? (pl / cost) * 100 : 0;
+                            return (
+                              <div>
+                                <p className="text-xs font-semibold tabular-nums"
+                                  style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
+                                  {pl >= 0 ? '+' : ''}{eur(pl)}
+                                </p>
+                                <p className="text-[10px]" style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
+                                  {plPct >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                                </p>
+                              </div>
+                            );
+                          })() : (
+                            <p className="text-[10px] font-medium" style={{ color: 'var(--ink-300)' }}>—</p>
                           )}
                         </div>
 

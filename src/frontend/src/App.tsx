@@ -18,6 +18,7 @@ import { IRSSimulatorPage }  from './pages/IRSSimulatorPage';
 import { SettingsPage }      from './pages/SettingsPage';
 import { InvestmentsPage }   from './pages/InvestmentsPage';
 import { LearnPage }         from './pages/LearnPage';
+import { NotFoundPage }      from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -45,7 +46,7 @@ function App() {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<LoginPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <ToastContainer />
     </ErrorBoundary>

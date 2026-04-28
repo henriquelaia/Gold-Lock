@@ -461,14 +461,9 @@ export function LearnPage() {
               </div>
             ))}
           </div>
-          <div className="mt-4">
-            <input type="email" placeholder="O teu email para ser notificado"
-              className="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
-              style={{ background: 'var(--ink-50)', border: '1px solid var(--border)', color: 'var(--ink-900)' }}
-              onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--gold)'}
-              onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'var(--border)'}
-            />
-          </div>
+          <p className="mt-4 text-[11px] text-center" style={{ color: 'var(--ink-300)' }}>
+            Notificações de comunidade disponíveis em breve.
+          </p>
         </div>
       </motion.div>
 

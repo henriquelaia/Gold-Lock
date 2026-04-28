@@ -7,6 +7,7 @@ import { useGoals, useCreateGoal, useDeleteGoal, useDepositGoal } from '../hooks
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { toast } from '../store/toastStore';
 
 const eur = (v: number) =>
   new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
@@ -71,7 +72,7 @@ function GoalCard({ goal, delay }: { goal: Goal; delay: number }) {
 
   function handleDeposit() {
     const amt = Number(depositAmount);
-    if (!amt || amt <= 0) return;
+    if (!amt || amt <= 0) { toast.error('Introduz um valor válido maior que zero'); return; }
     deposit({ id: goal.id, amount: amt }, {
       onSuccess: () => { setDepositAmount(''); setShowDeposit(false); },
     });
