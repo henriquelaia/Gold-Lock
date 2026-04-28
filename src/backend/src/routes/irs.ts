@@ -30,7 +30,7 @@ const DEDUCTION_LIMITS_2024 = {
 
 function calculateIRS(
   grossIncome: number,
-  maritalStatus: string,
+  _maritalStatus: string,
   dependents: number,
   socialSecurity: number,
   withholding: number,
@@ -155,13 +155,18 @@ irsRouter.get('/deduction-alerts', authenticate, async (req, res, next) => {
   }
 });
 
+const VALID_DEDUCTION_TYPES = [
+  'saude_dedutivel', 'educacao_dedutivel', 'habitacao_dedutivel',
+  'encargos_gerais_dedutivel', 'ppr_dedutivel', 'nao_dedutivel',
+] as const;
+
+const confirmAlertSchema = z.object({
+  confirmedType: z.enum(VALID_DEDUCTION_TYPES),
+});
+
 irsRouter.put('/deduction-alerts/:id/confirm', authenticate, async (req, res, next) => {
   try {
-    const { confirmedType } = req.body;
-    if (!confirmedType) {
-      res.status(400).json({ status: 'error', message: 'confirmedType é obrigatório' });
-      return;
-    }
+    const { confirmedType } = confirmAlertSchema.parse(req.body);
     const result = await pool.query(
       `UPDATE deduction_alerts
        SET status = 'confirmed', user_confirmed_type = $1

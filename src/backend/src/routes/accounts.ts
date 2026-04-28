@@ -43,10 +43,30 @@ const connectBodySchema = z.object({
   return_to: z.string().url().optional(),
 });
 
+const ALLOWED_RETURN_ORIGINS = [
+  process.env.FRONTEND_URL ?? 'http://localhost:3000',
+];
+
+function isAllowedReturnTo(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_RETURN_ORIGINS.some(origin => {
+      try { return parsed.origin === new URL(origin).origin; }
+      catch { return false; }
+    });
+  } catch {
+    return false;
+  }
+}
+
 accountsRouter.post('/connect', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.id;
     const body = connectBodySchema.parse(req.body);
+
+    if (body.return_to && !isAllowedReturnTo(body.return_to)) {
+      throw new AppError('URL de retorno não permitida.', 400);
+    }
 
     const { rows } = await db.query<{ salt_edge_customer_id: string | null }>(
       'SELECT salt_edge_customer_id FROM users WHERE id = $1',
@@ -66,7 +86,7 @@ accountsRouter.post('/connect', authenticate, async (req: Request, res: Response
 
     const session = await saltEdge.createConnectSession(
       customerId,
-      body.return_to ?? 'http://localhost:3000/accounts',
+      body.return_to ?? `${ALLOWED_RETURN_ORIGINS[0]}/accounts`,
     );
 
     res.json({ status: 'success', data: { connect_url: session.connect_url } });
