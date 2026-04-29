@@ -1,21 +1,21 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import {
-  TrendingUp, Info, Shield, Flame, Minus, Plus, X, Loader2,
+  TrendingUp, Info, Shield, Flame, Minus, Plus, X, Loader2, BarChart2,
 } from 'lucide-react';
 import { useInvestments, useCreateInvestment, useDeleteInvestment } from '../hooks/useInvestments';
+import { useMarketQuote, useMarketHistory } from '../hooks/useMarketData';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-
 import { EUR_RATE } from '../config/constants';
 
 const eur = (v: number) =>
   new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
-
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 14 },
@@ -39,7 +39,6 @@ interface Investment {
   type: InvestmentType;
   quantity: number;
   purchase_price: number;
-  current_price?: number;
   currency?: string;
   risk_level: RiskLevel;
   annual_rate?: number;
@@ -57,21 +56,13 @@ const TABS: { id: 'todos' | InvestmentType; label: string }[] = [
 ];
 
 const TYPE_LABELS: Record<InvestmentType, string> = {
-  stock:       'Ação',
-  etf:         'ETF',
-  bond:        'Obrigação',
-  crypto:      'Crypto',
-  certificado: 'Cert. Aforro',
-  deposito:    'Dep. a Prazo',
+  stock: 'Ação', etf: 'ETF', bond: 'Obrigação',
+  crypto: 'Crypto', certificado: 'Cert. Aforro', deposito: 'Dep. a Prazo',
 };
 
 const TYPE_COLORS: Record<InvestmentType, string> = {
-  stock:       '#3B82F6',
-  etf:         '#8B5CF6',
-  bond:        '#6B7280',
-  crypto:      '#F59E0B',
-  certificado: '#10B981',
-  deposito:    '#14B8A6',
+  stock: '#3B82F6', etf: '#8B5CF6', bond: '#6B7280',
+  crypto: '#F59E0B', certificado: '#10B981', deposito: '#14B8A6',
 };
 
 const RISK_CONFIG: Record<RiskLevel, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
@@ -80,10 +71,201 @@ const RISK_CONFIG: Record<RiskLevel, { label: string; color: string; bg: string;
   high:       { label: 'Alto',      color: '#EF4444', bg: 'rgba(239,68,68,0.10)',  Icon: Flame },
 };
 
-function getInvValue(inv: Investment) {
-  const v = Number(inv.quantity) * Number(inv.purchase_price);
-  return inv.currency === 'USD' ? v * EUR_RATE : v;
+function getInvCost(inv: Investment) {
+  const cost = Number(inv.quantity) * Number(inv.purchase_price);
+  return inv.currency === 'USD' ? cost * EUR_RATE : cost;
 }
+
+// ── Gráfico de histórico ────────────────────────────────────────────────────
+
+function HistoryModal({ inv, onClose }: { inv: Investment; onClose: () => void }) {
+  const [period, setPeriod] = useState<'30d' | '1y'>('30d');
+  const { data, isLoading } = useMarketHistory(inv.ticker, inv.type, period);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(17,17,16,0.4)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-lg rounded-2xl p-6"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-[15px] font-bold" style={{ color: 'var(--ink-900)' }}>{inv.name}</h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--ink-400)' }}>
+              {inv.ticker?.toUpperCase()} · Histórico de preços
+            </p>
+          </div>
+          <button onClick={onClose}><X size={16} style={{ color: 'var(--ink-400)' }} /></button>
+        </div>
+
+        <div className="flex gap-1 mb-4">
+          {(['30d', '1y'] as const).map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                background: period === p ? 'var(--ink-900)' : 'transparent',
+                color: period === p ? 'white' : 'var(--ink-400)',
+              }}>
+              {p === '30d' ? '30 dias' : '1 ano'}
+            </button>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-40"><LoadingSpinner /></div>
+        ) : !data?.points.length ? (
+          <p className="text-center text-sm py-10" style={{ color: 'var(--ink-400)' }}>
+            Sem dados históricos disponíveis
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={data.points} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--ink-300)' }}
+                tickFormatter={d => d.slice(5)} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10, fill: 'var(--ink-300)' }} />
+              <Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Fecho']}
+                labelFormatter={l => l} />
+              <Line type="monotone" dataKey="close" stroke="#C9A227"
+                dot={false} strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+// ── Linha de investimento com cotação live ──────────────────────────────────
+
+interface InvestmentRowProps {
+  inv: Investment;
+  totalPortfolioValue: number;
+  index: number;
+  isLast: boolean;
+  onDelete: () => void;
+  onShowHistory: () => void;
+  onLivePrice: (id: string, price: number | null) => void;
+}
+
+function InvestmentRow({ inv, totalPortfolioValue, index, isLast, onDelete, onShowHistory, onLivePrice }: InvestmentRowProps) {
+  const { data: quote, isLoading: loadingQuote } = useMarketQuote(inv.ticker, inv.type);
+
+  // Reportar preço ao componente pai para agregação no summary
+  const livePrice = quote?.price ?? null;
+  if (livePrice !== null) {
+    onLivePrice(inv.id, livePrice);
+  }
+
+  const cost = getInvCost(inv);
+  const currentValue = livePrice != null
+    ? (() => {
+        const v = Number(inv.quantity) * livePrice;
+        return inv.currency === 'USD' ? v * EUR_RATE : v;
+      })()
+    : cost;
+
+  const pl = livePrice != null ? currentValue - cost : null;
+  const plPct = pl != null && cost > 0 ? (pl / cost) * 100 : null;
+  const alloc = totalPortfolioValue > 0 ? ((livePrice != null ? currentValue : cost) / totalPortfolioValue) * 100 : 0;
+
+  const risk = RISK_CONFIG[inv.risk_level] ?? RISK_CONFIG.moderate;
+  const typeColor = TYPE_COLORS[inv.type] ?? '#9E9E9E';
+  const isGuaranteed = inv.risk_level === 'guaranteed';
+  const hasHistory = !!inv.ticker && ['stock', 'etf', 'crypto'].includes(inv.type);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ delay: index * 0.04, duration: 0.22 }}
+      className="grid grid-cols-12 items-center px-4 py-3 transition-colors group"
+      style={{ borderBottom: !isLast ? '1px solid var(--border)' : 'none' }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--ink-50)'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+    >
+      <div className="col-span-5 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black text-white shrink-0"
+          style={{ background: typeColor }}>
+          {inv.ticker ? inv.ticker.slice(0, 3).toUpperCase() : TYPE_LABELS[inv.type].slice(0, 2).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold truncate" style={{ color: 'var(--ink-900)' }}>{inv.name}</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              style={{ background: `${typeColor}18`, color: typeColor }}>
+              {TYPE_LABELS[inv.type]}
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              style={{ background: risk.bg, color: risk.color }}>
+              {risk.label}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-2 text-right">
+        <p className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ink-900)' }}>
+          {eur(livePrice != null ? currentValue : cost)}
+        </p>
+        {livePrice != null ? (
+          <p className="text-[10px]" style={{ color: 'var(--ink-300)' }}>
+            {inv.currency === 'USD' ? `$${livePrice.toFixed(2)}` : `€${livePrice.toFixed(2)}`}
+          </p>
+        ) : inv.annual_rate ? (
+          <p className="text-[10px]" style={{ color: 'var(--ink-300)' }}>{Number(inv.annual_rate).toFixed(2)}%/ano</p>
+        ) : loadingQuote && inv.ticker ? (
+          <Loader2 size={10} className="animate-spin ml-auto" style={{ color: 'var(--ink-300)' }} />
+        ) : null}
+      </div>
+
+      <div className="col-span-2 text-right">
+        {isGuaranteed ? (
+          <p className="text-xs font-medium" style={{ color: 'var(--ink-300)' }}>—</p>
+        ) : pl != null ? (
+          <div>
+            <p className="text-xs font-semibold tabular-nums"
+              style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
+              {pl >= 0 ? '+' : ''}{eur(pl)}
+            </p>
+            <p className="text-[10px]" style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
+              {plPct! >= 0 ? '+' : ''}{plPct!.toFixed(1)}%
+            </p>
+          </div>
+        ) : (
+          <p className="text-[10px]" style={{ color: 'var(--ink-300)' }}>—</p>
+        )}
+      </div>
+
+      <div className="col-span-2 text-right">
+        <p className="text-xs font-semibold" style={{ color: 'var(--ink-700)' }}>{alloc.toFixed(1)}%</p>
+        <div className="h-1 rounded-full mt-1" style={{ background: 'var(--ink-100)' }}>
+          <div className="h-full rounded-full" style={{ width: `${Math.min(alloc, 100)}%`, background: typeColor }} />
+        </div>
+      </div>
+
+      <div className="col-span-1 flex justify-end gap-1">
+        {hasHistory && (
+          <button onClick={onShowHistory}
+            className="opacity-0 group-hover:opacity-40 hover:!opacity-80 transition-opacity p-1 rounded"
+            title="Ver histórico">
+            <BarChart2 size={12} style={{ color: 'var(--ink-900)' }} />
+          </button>
+        )}
+        <button onClick={onDelete}
+          className="opacity-0 group-hover:opacity-40 hover:!opacity-80 transition-opacity p-1 rounded"
+          title="Remover">
+          <X size={12} style={{ color: 'var(--ink-900)' }} />
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Modal de criação ────────────────────────────────────────────────────────
 
 function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
   const { mutate: create, isPending } = useCreateInvestment();
@@ -107,14 +289,9 @@ function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
     }
     create(
       {
-        name: form.name,
-        ticker: form.ticker || undefined,
-        type: form.type,
-        quantity: Number(form.quantity),
-        purchasePrice: Number(form.purchasePrice),
-        purchaseDate: form.purchaseDate,
-        currency: form.currency,
-        riskLevel: form.riskLevel,
+        name: form.name, ticker: form.ticker || undefined, type: form.type,
+        quantity: Number(form.quantity), purchasePrice: Number(form.purchasePrice),
+        purchaseDate: form.purchaseDate, currency: form.currency, riskLevel: form.riskLevel,
         institution: form.institution || undefined,
         annualRate: form.annualRate ? Number(form.annualRate) : undefined,
         notes: form.notes || undefined,
@@ -145,9 +322,7 @@ function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
             <select value={form.type} onChange={e => f('type', e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
               style={{ background: 'var(--ink-50)', border: '1px solid var(--border)', color: 'var(--ink-900)' }}>
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
+              {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
 
@@ -244,24 +419,64 @@ function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Página principal ────────────────────────────────────────────────────────
+
 export function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState<'todos' | InvestmentType>('todos');
   const [showNote, setShowNote] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [historyInv, setHistoryInv] = useState<Investment | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Mapa id → preço live para calcular P&L agregado no summary
+  const [livePrices, setLivePrices] = useState<Map<string, number>>(new Map());
+  const handleLivePrice = useCallback((id: string, price: number | null) => {
+    setLivePrices(prev => {
+      if (price === null) return prev;
+      if (prev.get(id) === price) return prev;
+      const next = new Map(prev);
+      next.set(id, price);
+      return next;
+    });
+  }, []);
 
   const { data: investments = [], isLoading } = useInvestments();
   const { mutate: deleteInvestment, isPending: isDeleting } = useDeleteInvestment();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const invList = investments as Investment[];
-
   const filtered = activeTab === 'todos' ? invList : invList.filter(i => i.type === activeTab);
 
-  const totalPortfolioValue = invList.reduce((s, inv) => s + getInvValue(inv), 0);
+  // Valor total: usa preço live quando disponível, senão custo de compra
+  const totalPortfolioValue = invList.reduce((s, inv) => {
+    const livePrice = livePrices.get(inv.id);
+    if (livePrice != null) {
+      const v = Number(inv.quantity) * livePrice;
+      return s + (inv.currency === 'USD' ? v * EUR_RATE : v);
+    }
+    return s + getInvCost(inv);
+  }, 0);
+
+  // P&L total agregado (apenas investimentos com preço live disponível)
+  const totalPL = invList.reduce((s, inv) => {
+    const livePrice = livePrices.get(inv.id);
+    if (livePrice == null || inv.risk_level === 'guaranteed') return s;
+    const cost = getInvCost(inv);
+    const v = Number(inv.quantity) * livePrice;
+    const currentVal = inv.currency === 'USD' ? v * EUR_RATE : v;
+    return s + (currentVal - cost);
+  }, 0);
+  const totalCost = invList.reduce((s, inv) => {
+    if (livePrices.has(inv.id) && inv.risk_level !== 'guaranteed') return s + getInvCost(inv);
+    return s;
+  }, 0);
+  const hasAnyLivePrice = livePrices.size > 0;
 
   const donutData = Object.entries(
     invList.reduce<Record<string, number>>((acc, inv) => {
-      const val = getInvValue(inv);
+      const livePrice = livePrices.get(inv.id);
+      const val = livePrice != null
+        ? (() => { const v = Number(inv.quantity) * livePrice; return inv.currency === 'USD' ? v * EUR_RATE : v; })()
+        : getInvCost(inv);
       acc[inv.type] = (acc[inv.type] || 0) + val;
       return acc;
     }, {})
@@ -279,6 +494,7 @@ export function InvestmentsPage() {
     <>
       <AnimatePresence>
         {showCreate && <CreateInvestmentModal onClose={() => setShowCreate(false)} />}
+        {historyInv && <HistoryModal inv={historyInv} onClose={() => setHistoryInv(null)} />}
       </AnimatePresence>
 
       <div className="p-6 space-y-5 max-w-7xl mx-auto">
@@ -291,8 +507,7 @@ export function InvestmentsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowNote(n => !n)}
+            <button onClick={() => setShowNote(n => !n)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
               style={{ background: 'var(--gold-subtle)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}>
               <Info size={12} />
@@ -314,11 +529,11 @@ export function InvestmentsPage() {
               exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}
               className="rounded-2xl px-5 py-4 text-sm"
               style={{ background: 'var(--gold-subtle)', border: '1px solid var(--gold-border)' }}>
-              <p className="font-semibold mb-1" style={{ color: 'var(--ink-900)' }}>Investimento vs Poupança Garantida</p>
+              <p className="font-semibold mb-1" style={{ color: 'var(--ink-900)' }}>Cotações e P&L</p>
               <p style={{ color: 'var(--ink-500)' }}>
-                <strong>Depósitos a Prazo</strong> e <strong>Certificados de Aforro</strong> são instrumentos de poupança com capital garantido.
-                Produtos como <strong>ações, ETFs e crypto</strong> têm risco de perda de capital.
-                Os valores mostrados correspondem ao custo de aquisição. Preços em tempo real serão adicionados brevemente.
+                Ações e ETFs usam <strong>Polygon.io</strong> (15 min delay, plano free).
+                Crypto usa <strong>CoinGecko</strong> (gratuito). Depósitos e Certificados de Aforro
+                têm capital garantido — sem cotação automática.
               </p>
             </motion.div>
           )}
@@ -343,6 +558,7 @@ export function InvestmentsPage() {
                   <p className="text-[26px] font-black text-white tabular-nums leading-none">{eur(totalPortfolioValue)}</p>
                   <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     {invList.length} posições · {new Set(invList.map(i => i.type)).size} classes de ativos
+                    {hasAnyLivePrice && ' · cotações live'}
                   </p>
                 </div>
               </motion.div>
@@ -352,41 +568,25 @@ export function InvestmentsPage() {
                   Rentabilidade Total
                 </span>
                 <div>
-                  {(() => {
-                    const plInvs = invList.filter(i => i.risk_level !== 'guaranteed' && i.current_price != null);
-                    if (plInvs.length === 0) {
-                      return (
-                        <>
-                          <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--ink-400)' }}>—</p>
-                          <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--ink-300)' }}>
-                            Preço de compra · preços reais no Sprint 10
-                          </p>
-                        </>
-                      );
-                    }
-                    const totalPL = plInvs.reduce((s, inv) => {
-                      const cost = Number(inv.quantity) * Number(inv.purchase_price);
-                      const value = Number(inv.quantity) * Number(inv.current_price!);
-                      return s + (inv.currency === 'USD' ? (value - cost) * EUR_RATE : value - cost);
-                    }, 0);
-                    const totalCost = plInvs.reduce((s, inv) => {
-                      const cost = Number(inv.quantity) * Number(inv.purchase_price);
-                      return s + (inv.currency === 'USD' ? cost * EUR_RATE : cost);
-                    }, 0);
-                    const plPct = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
-                    return (
-                      <>
-                        <p className="text-[22px] font-black tabular-nums leading-none"
-                          style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
-                          {totalPL >= 0 ? '+' : ''}{eur(totalPL)}
-                        </p>
-                        <p className="text-xs mt-1.5 font-medium"
-                          style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
-                          {plPct >= 0 ? '+' : ''}{plPct.toFixed(2)}% · preço na compra
-                        </p>
-                      </>
-                    );
-                  })()}
+                  {!hasAnyLivePrice ? (
+                    <>
+                      <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--ink-400)' }}>—</p>
+                      <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--ink-300)' }}>
+                        A carregar cotações…
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[22px] font-black tabular-nums leading-none"
+                        style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
+                        {totalPL >= 0 ? '+' : ''}{eur(totalPL)}
+                      </p>
+                      <p className="text-xs mt-1.5 font-medium"
+                        style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
+                        {totalCost > 0 ? `${((totalPL / totalCost) * 100).toFixed(2)}%` : ''} · preço real
+                      </p>
+                    </>
+                  )}
                 </div>
               </motion.div>
 
@@ -397,7 +597,7 @@ export function InvestmentsPage() {
                 <div className="space-y-2">
                   {(['guaranteed', 'moderate', 'high'] as const).map(risk => {
                     const cfg = RISK_CONFIG[risk];
-                    const val = invList.filter(i => i.risk_level === risk).reduce((s, i) => s + getInvValue(i), 0);
+                    const val = invList.filter(i => i.risk_level === risk).reduce((s, i) => s + getInvCost(i), 0);
                     const pctVal = totalPortfolioValue > 0 ? (val / totalPortfolioValue) * 100 : 0;
                     return (
                       <div key={risk} className="flex items-center gap-2">
@@ -479,96 +679,18 @@ export function InvestmentsPage() {
                 </div>
 
                 <AnimatePresence mode="popLayout">
-                  {filtered.map((inv, i) => {
-                    const val = getInvValue(inv);
-                    const alloc = totalPortfolioValue > 0 ? (val / totalPortfolioValue) * 100 : 0;
-                    const risk = RISK_CONFIG[inv.risk_level] ?? RISK_CONFIG.moderate;
-                    const typeColor = TYPE_COLORS[inv.type] ?? '#9E9E9E';
-                    const isGuaranteed = inv.risk_level === 'guaranteed';
-
-                    return (
-                      <motion.div key={inv.id}
-                        layout
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        transition={{ delay: i * 0.04, duration: 0.22 }}
-                        className="grid grid-cols-12 items-center px-4 py-3 transition-colors group"
-                        style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--ink-50)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
-                      >
-                        <div className="col-span-5 flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black text-white shrink-0"
-                            style={{ background: typeColor }}>
-                            {inv.ticker ? inv.ticker.slice(0, 3) : TYPE_LABELS[inv.type].slice(0, 2).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--ink-900)' }}>
-                              {inv.name}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                                style={{ background: `${typeColor}18`, color: typeColor }}>
-                                {TYPE_LABELS[inv.type]}
-                              </span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                                style={{ background: risk.bg, color: risk.color }}>
-                                {risk.label}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="col-span-2 text-right">
-                          <p className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ink-900)' }}>{eur(val)}</p>
-                          {inv.annual_rate && (
-                            <p className="text-[10px]" style={{ color: 'var(--ink-300)' }}>{Number(inv.annual_rate).toFixed(2)}%/ano</p>
-                          )}
-                        </div>
-
-                        <div className="col-span-2 text-right">
-                          {isGuaranteed ? (
-                            <p className="text-xs font-medium" style={{ color: 'var(--ink-300)' }}>—</p>
-                          ) : inv.current_price != null ? (() => {
-                            const cost = Number(inv.quantity) * Number(inv.purchase_price);
-                            const value = Number(inv.quantity) * Number(inv.current_price);
-                            const pl = inv.currency === 'USD' ? (value - cost) * EUR_RATE : value - cost;
-                            const plPct = cost > 0 ? (pl / cost) * 100 : 0;
-                            return (
-                              <div>
-                                <p className="text-xs font-semibold tabular-nums"
-                                  style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
-                                  {pl >= 0 ? '+' : ''}{eur(pl)}
-                                </p>
-                                <p className="text-[10px]" style={{ color: pl >= 0 ? '#22c55e' : '#ef4444' }}>
-                                  {plPct >= 0 ? '+' : ''}{plPct.toFixed(1)}%
-                                </p>
-                              </div>
-                            );
-                          })() : (
-                            <p className="text-[10px] font-medium" style={{ color: 'var(--ink-300)' }}>—</p>
-                          )}
-                        </div>
-
-                        <div className="col-span-2 text-right">
-                          <p className="text-xs font-semibold" style={{ color: 'var(--ink-700)' }}>{alloc.toFixed(1)}%</p>
-                          <div className="h-1 rounded-full mt-1" style={{ background: 'var(--ink-100)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${Math.min(alloc, 100)}%`, background: typeColor }} />
-                          </div>
-                        </div>
-
-                        <div className="col-span-1 flex justify-end">
-                          <button
-                            onClick={() => setDeleteId(inv.id)}
-                            className="opacity-0 group-hover:opacity-40 hover:!opacity-80 transition-opacity p-1 rounded"
-                            title="Remover">
-                            <X size={12} style={{ color: 'var(--ink-900)' }} />
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                  {filtered.map((inv, i) => (
+                    <InvestmentRow
+                      key={inv.id}
+                      inv={inv}
+                      totalPortfolioValue={totalPortfolioValue}
+                      index={i}
+                      isLast={i === filtered.length - 1}
+                      onDelete={() => setDeleteId(inv.id)}
+                      onShowHistory={() => setHistoryInv(inv)}
+                      onLivePrice={handleLivePrice}
+                    />
+                  ))}
                 </AnimatePresence>
 
                 {filtered.length === 0 && (
@@ -581,6 +703,7 @@ export function InvestmentsPage() {
           </>
         )}
       </div>
+
       <ConfirmDialog
         open={deleteId !== null}
         title="Remover investimento"

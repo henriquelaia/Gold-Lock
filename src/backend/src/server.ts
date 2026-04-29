@@ -15,6 +15,7 @@ import { investmentsRouter } from './routes/investments.js';
 import { irsRouter } from './routes/irs.js';
 import { categoriesRouter } from './routes/categories.js';
 import { fiscalProfileRouter } from './routes/fiscalProfile.js';
+import { marketRouter } from './routes/market.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import './config/database.js';
@@ -53,6 +54,7 @@ app.use('/api/investments', investmentsRouter);
 app.use('/api/irs', irsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/fiscal-profile', fiscalProfileRouter);
+app.use('/api/market', marketRouter);
 
 // ── Error Handler ──
 app.use(errorHandler);
