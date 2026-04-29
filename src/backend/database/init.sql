@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_id) WHERE parent_id IS NOT NULL;
+
 -- Categorias predefinidas para o mercado PT
 INSERT INTO categories (name, name_pt, icon, color, is_expense, irs_deduction_category) VALUES
     ('groceries', 'Supermercado', 'shopping-cart', '#4CAF50', true, NULL),
@@ -122,6 +124,7 @@ CREATE INDEX idx_transactions_user ON transactions(user_id);
 CREATE INDEX idx_transactions_date ON transactions(transaction_date DESC);
 CREATE INDEX idx_transactions_category ON transactions(category_id);
 CREATE INDEX idx_transactions_account ON transactions(bank_account_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, transaction_date DESC);
 
 -- ══════════════════════════════════════════
 -- Tabela: budgets

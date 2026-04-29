@@ -309,7 +309,7 @@ accountsRouter.post(
                    status         = 'active'`,
             [
               remoteAccount.name,
-              remoteAccount.name,
+              (remoteAccount.extra?.['account_name'] as string | undefined) ?? remoteAccount.name,
               (remoteAccount.extra?.['iban'] as string | undefined) ?? null,
               connectionId,
               remoteAccount.id,

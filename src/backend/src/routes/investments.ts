@@ -72,10 +72,18 @@ investmentsRouter.put('/:id', authenticate, async (req, res, next) => {
     const params: unknown[] = [];
     let i = 1;
 
-    if (body.name          !== undefined) { sets.push(`name = $${i++}`);           params.push(body.name); }
-    if (body.quantity      !== undefined) { sets.push(`quantity = $${i++}`);       params.push(body.quantity); }
-    if (body.purchasePrice !== undefined) { sets.push(`purchase_price = $${i++}`); params.push(body.purchasePrice); }
-    if (body.notes         !== undefined) { sets.push(`notes = $${i++}`);          params.push(body.notes); }
+    if (body.name          !== undefined) { sets.push(`name = $${i++}`);            params.push(body.name); }
+    if (body.ticker        !== undefined) { sets.push(`ticker = $${i++}`);          params.push(body.ticker); }
+    if (body.type          !== undefined) { sets.push(`type = $${i++}`);            params.push(body.type); }
+    if (body.quantity      !== undefined) { sets.push(`quantity = $${i++}`);        params.push(body.quantity); }
+    if (body.purchasePrice !== undefined) { sets.push(`purchase_price = $${i++}`);  params.push(body.purchasePrice); }
+    if (body.purchaseDate  !== undefined) { sets.push(`purchase_date = $${i++}`);   params.push(body.purchaseDate); }
+    if (body.currency      !== undefined) { sets.push(`currency = $${i++}`);        params.push(body.currency); }
+    if (body.riskLevel     !== undefined) { sets.push(`risk_level = $${i++}`);      params.push(body.riskLevel); }
+    if (body.institution   !== undefined) { sets.push(`institution = $${i++}`);     params.push(body.institution); }
+    if (body.maturityDate  !== undefined) { sets.push(`maturity_date = $${i++}`);   params.push(body.maturityDate); }
+    if (body.annualRate    !== undefined) { sets.push(`annual_rate = $${i++}`);     params.push(body.annualRate); }
+    if (body.notes         !== undefined) { sets.push(`notes = $${i++}`);           params.push(body.notes); }
 
     if (sets.length === 0) {
       res.status(400).json({ status: 'error', message: 'Nenhum campo para actualizar' });
