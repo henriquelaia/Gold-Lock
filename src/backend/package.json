@@ -6,7 +6,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
+    "test": "echo 'Testes a implementar no Sprint 9 (Vitest + Jest)' && exit 0",
     "db:migrate": "node-pg-migrate up",
     "db:rollback": "node-pg-migrate down"
   },
