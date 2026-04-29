@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calculator, ChevronDown, Info, TrendingDown } from 'lucide-react';
 
@@ -133,11 +133,6 @@ export function IRSSimulatorPage() {
   const [withholdingTax, setWithholdingTax] = useState(3800);
   const [deductions, setDeductions] = useState({ saude: 400, educacao: 0, habitacao: 0, gerais: 0, ppr: 0 });
   const [showBrackets, setShowBrackets] = useState(false);
-  const [ssManuallyEdited, setSsManuallyEdited] = useState(false);
-
-  useEffect(() => {
-    if (!ssManuallyEdited) setSocialSecurity(Math.round(grossIncome * 0.11));
-  }, [grossIncome, ssManuallyEdited]);
 
   const setDed = (key: string, val: number) => setDeductions(d => ({ ...d, [key]: val }));
 
@@ -172,8 +167,8 @@ export function IRSSimulatorPage() {
             style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
             <h2 className="text-sm font-bold text-[var(--ink-900)]">Rendimento (Categoria A)</h2>
 
-            <Field label="Rendimento Bruto Anual" value={grossIncome} onChange={v => { setGrossIncome(v); setSsManuallyEdited(false); }} />
-            <Field label="Contribuições Segurança Social" sub="Trabalhador paga 11% — calculado automaticamente" value={socialSecurity} onChange={v => { setSsManuallyEdited(true); setSocialSecurity(v); }} />
+            <Field label="Rendimento Bruto Anual" value={grossIncome} onChange={v => { setGrossIncome(v); setSocialSecurity(Math.round(v * 0.11)); }} />
+            <Field label="Contribuições Segurança Social" sub="Trabalhador paga 11% — calculado automaticamente" value={socialSecurity} onChange={setSocialSecurity} />
             <Field label="Retenções na Fonte (total retido no ano)" value={withholdingTax} onChange={setWithholdingTax} />
 
             <div className="grid grid-cols-2 gap-3">

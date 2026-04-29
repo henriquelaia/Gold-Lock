@@ -14,16 +14,12 @@ type Status = 'loading' | 'success' | 'error';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState<Status>('loading');
-  const [message, setMessage] = useState('');
+  const token = searchParams.get('token');
+  const [status, setStatus] = useState<Status>(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : 'Link de verificação inválido ou incompleto.');
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) {
-      setStatus('error');
-      setMessage('Link de verificação inválido ou incompleto.');
-      return;
-    }
+    if (!token) return;
 
     authApi.verifyEmail(token)
       .then(() => {
@@ -36,7 +32,7 @@ export function VerifyEmailPage() {
         setStatus('error');
         setMessage(msg);
       });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token]);
 
   return (
     <div

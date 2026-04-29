@@ -14,25 +14,25 @@ import { api } from '../../services/api';
 
 export function PrivateRoute() {
   const { accessToken, user, setUser, clearAuth } = useAuthStore();
-  const [checking, setChecking] = useState(false);
+  const needsValidation = !!(accessToken && !user && accessToken !== 'demo-token');
+  const [checking, setChecking] = useState(needsValidation);
 
   useEffect(() => {
     // Se há token mas não user (e.g., page refresh), validar sessão via API
     // Token "demo-token" não precisa de validação — é só para modo demo
-    if (accessToken && !user && accessToken !== 'demo-token') {
-      setChecking(true);
-      api.get('/auth/me')
-        .then(({ data }) => {
-          setUser(data.data.user);
-        })
-        .catch((err) => {
-          // Só limpar auth em erros 401 — não em falhas de rede ou 5xx
-          if (err.response?.status === 401) {
-            clearAuth();
-          }
-        })
-        .finally(() => setChecking(false));
-    }
+    if (!needsValidation) return;
+
+    api.get('/auth/me')
+      .then(({ data }) => {
+        setUser(data.data.user);
+      })
+      .catch((err) => {
+        // Só limpar auth em erros 401 — não em falhas de rede ou 5xx
+        if (err.response?.status === 401) {
+          clearAuth();
+        }
+      })
+      .finally(() => setChecking(false));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (checking) {
