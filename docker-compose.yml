@@ -13,7 +13,8 @@ services:
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0 --port 3000
+    user: "0"
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 3000"
     environment:
       - VITE_API_URL=http://localhost:4000/api
     depends_on:
@@ -45,7 +46,8 @@ services:
       - FRONTEND_URL=http://localhost:3000
       - ML_SERVICE_URL=http://ml-service:5000
       - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_change_me}
-    command: npm run dev
+    user: "0"
+    command: sh -c "npm ci && npm run dev"
     depends_on:
       postgres:
         condition: service_healthy
