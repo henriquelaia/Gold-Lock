@@ -15,6 +15,8 @@ export function useAuth() {
   const { user, setUser, setTokens, clearAuth } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const login = useCallback(async (
     email: string,
@@ -23,6 +25,7 @@ export function useAuth() {
   ): Promise<'ok' | 'totp_required'> => {
     setLoading(true);
     setError(null);
+    setNeedsEmailVerification(false);
     try {
       const { data } = await authApi.login({ email, password, totpCode });
 
@@ -35,9 +38,15 @@ export function useAuth() {
       navigate('/');
       return 'ok';
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message ?? 'Erro ao fazer login.';
-      setError(message);
+      const apiError = err as { response?: { data?: { message?: string }; status?: number } };
+      const message = apiError?.response?.data?.message ?? 'Erro ao fazer login.';
+      if (apiError?.response?.status === 403 && message === 'email_not_verified') {
+        setNeedsEmailVerification(true);
+        setPendingEmail(email);
+        setError('Por favor verifica o teu email antes de fazer login.');
+      } else {
+        setError(message);
+      }
       throw err;
     } finally {
       setLoading(false);
@@ -75,5 +84,5 @@ export function useAuth() {
     navigate('/login');
   }, [clearAuth, navigate]);
 
-  return { user, loading, error, login, register, logout };
+  return { user, loading, error, needsEmailVerification, pendingEmail, login, register, logout };
 }

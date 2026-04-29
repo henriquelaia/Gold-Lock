@@ -117,6 +117,8 @@ export const authApi = {
   disable2fa:          (password: string) => api.post('/auth/2fa/disable', { password }),
   changePassword:      (currentPassword: string, newPassword: string) =>
     api.post('/auth/change-password', { currentPassword, newPassword }),
+  devVerifyEmail:      (email: string) =>
+    api.post('/auth/dev/verify-email', { email }),
 };
 
 export const accountsApi = {

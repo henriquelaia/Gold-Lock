@@ -169,11 +169,15 @@ export async function register(
   const verificationToken   = uuidv4();
   const verificationExpires = new Date(Date.now() + VERIFY_TOKEN_TTL_MS);
 
+  // Em desenvolvimento sem SMTP configurado, verificar automaticamente para não bloquear o login
+  const autoVerify = process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST;
+
   const result = await db.query(
-    `INSERT INTO users (name, email, password_hash, email_verification_token, email_verification_token_expires)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO users (name, email, password_hash, email_verification_token,
+      email_verification_token_expires, email_verified)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id, name, email, email_verified, totp_enabled, created_at`,
-    [name, email, passwordHash, verificationToken, verificationExpires]
+    [name, email, passwordHash, verificationToken, verificationExpires, autoVerify]
   );
 
   const user = toPublicUser(result.rows[0]);
@@ -270,10 +274,7 @@ export async function login(
 
   // Verificar se o email foi confirmado
   if (!userRow.email_verified) {
-    throw new AppError(
-      'Por favor verifica o teu email antes de fazer login. Verifica a caixa de entrada.',
-      403
-    );
+    throw new AppError('email_not_verified', 403);
   }
 
   // Se 2FA ativo → verificar código TOTP antes de emitir tokens
