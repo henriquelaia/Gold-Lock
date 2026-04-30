@@ -4,7 +4,6 @@ import { Plus, X, Loader2 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { useGoals, useCreateGoal, useDeleteGoal, useDepositGoal } from '../hooks/useGoals';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { toast } from '../store/toastStore';
@@ -277,7 +276,23 @@ export function GoalsPage() {
   const overallPct  = totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0;
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div>;
+    return (
+      <div className="p-6 space-y-5 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-48 rounded-md animate-pulse" style={{ background: 'rgba(0,0,0,0.06)' }} />
+            <div className="h-3 w-56 rounded animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          </div>
+          <div className="h-10 w-32 rounded-xl animate-pulse" style={{ background: 'rgba(0,0,0,0.06)' }} />
+        </div>
+        <div className="h-32 rounded-2xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

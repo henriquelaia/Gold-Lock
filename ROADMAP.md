@@ -57,36 +57,23 @@ Projeto académico UBI 2025/2026 — Henrique Miguel Silva Laia (Nº 51667)
 - Exportação CSV das transações filtradas
 - Zero referências a `mock.ts` em código de produção das páginas alteradas
 
+### Sprint 6 — Budgets, Goals e Categories ✅
+- Backend `POST /api/categories` com schema Zod (name, namePt, icon, color hex, isExpense, parentId, irsDeductionCategory) + validação que `parentId` aponta para categoria existente
+- `GET /api/categories` agora devolve também `parent_id` para suportar hierarquia
+- `categoriesApi.create` alargado para aceitar `parentId`/`isExpense`/`irsDeductionCategory`
+- Hook novo `useCreateCategory` em `useTransactions.ts` (invalida `['categories']`)
+- `CategoriesPage.tsx` (nova) — listagem agrupada por `parent_id` (raízes + subcategorias indentadas), modal de criação com slug auto-gerado a partir do nome PT, color picker, badges Despesa/Receita, skeletons
+- Rota `/categories` em `App.tsx` + entrada **Categorias** com ícone `Tag` na Sidebar (após "Metas")
+- `BudgetsPage.tsx`: `LoadingSpinner` substituído por skeletons pulsantes (header + summary + grid 2x2); novo botão `Pencil` no `BudgetCard` que abre modal de edição
+- `BudgetFormModal` factorizado a partir do `CreateBudgetModal` — modo `create`/`edit` partilha o mesmo formulário com pré-preenchimento e usa `useUpdateBudget` quando há `initial`
+- `GoalsPage.tsx`: `LoadingSpinner` substituído por skeletons pulsantes (header + summary + grid 2x2)
+- Backend já tinha `spent` injectado em `GET /api/budgets` (subquery com transações do mês corrente) — sem alterações necessárias
+
 ---
 
 ## Sprints Planeados
 
-### Sprint 6 — Budgets, Goals e Categories 🔜 **(Próximo)**
-**Branch:** `feat/sprint-6-budgets-goals`
-
-**Objetivo:** Páginas de orçamentos, metas e categorias totalmente funcionais com backend (CRUD + progresso real calculado a partir das transações).
-
-**Tarefas frontend:**
-- [ ] `BudgetsPage.tsx` — listar via `useBudgets`, formulário de criação (nome, categoria, limite mensal), edição inline, eliminar com `ConfirmDialog`
-- [ ] Cada budget mostra barra de progresso (`spent / amount_limit`) com cor por threshold (verde <60%, âmbar 60-80%, vermelho >80%)
-- [ ] `GoalsPage.tsx` — listar via `useGoals`, criar meta (nome, valor alvo, data alvo opcional), botão "Depositar" que chama `goalsApi.deposit`
-- [ ] `CategoriesPage.tsx` — listar categorias com `name_pt` + ícone + cor, formulário de criação de subcategoria (`parent_id`)
-- [ ] Loading skeletons + empty states em todas as páginas (mesmo padrão do Sprint 5)
-
-**Tarefas backend:**
-- [ ] Confirmar `GET /api/budgets/:id/progress` calcula `spent` a partir de `transactions` (soma de valores absolutos < 0 da categoria, no mês corrente)
-- [ ] Adicionar `spent` no response do `GET /api/budgets` (join com transações) para evitar chamadas N+1 no frontend
-- [ ] `categoriesApi.create` já existe — confirmar que aceita `parent_id` opcional
-
-**Critérios de aceitação:**
-- Utilizador cria orçamento de "Alimentação 400€/mês" e a barra mostra consumo real das transações categorizadas
-- Goals: criar meta "Férias 2000€", depositar 100€ → barra vai para 5%
-- Sem `mock.ts` em código de produção das três páginas
-- `typecheck + lint + build` passam em frontend e backend
-
----
-
-### Sprint 7 — IRS Simulator Persistente
+### Sprint 7 — IRS Simulator Persistente 🔜 **(Próximo)**
 **Objetivo:** Guardar simulações IRS no backend, histórico de simulações por utilizador.
 
 **Tarefas:**

@@ -13,6 +13,7 @@ import { DashboardPage }     from './pages/DashboardPage';
 import { TransactionsPage }  from './pages/TransactionsPage';
 import { BudgetsPage }       from './pages/BudgetsPage';
 import { GoalsPage }         from './pages/GoalsPage';
+import { CategoriesPage }    from './pages/CategoriesPage';
 import { AccountsPage }      from './pages/AccountsPage';
 import { IRSSimulatorPage }  from './pages/IRSSimulatorPage';
 import { SettingsPage }      from './pages/SettingsPage';
@@ -37,6 +38,7 @@ function App() {
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/budgets"      element={<BudgetsPage />} />
             <Route path="/goals"        element={<GoalsPage />} />
+            <Route path="/categories"   element={<CategoriesPage />} />
             <Route path="/accounts"     element={<AccountsPage />} />
             <Route path="/investments"  element={<InvestmentsPage />} />
             <Route path="/irs"          element={<IRSSimulatorPage />} />

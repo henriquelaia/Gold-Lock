@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, AlertTriangle, X, Loader2 } from 'lucide-react';
-import { useBudgets, useCreateBudget, useDeleteBudget } from '../hooks/useBudgets';
+import { Plus, AlertTriangle, X, Loader2, Pencil } from 'lucide-react';
+import { useBudgets, useCreateBudget, useDeleteBudget, useUpdateBudget } from '../hooks/useBudgets';
 import { useCategories } from '../hooks/useTransactions';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
@@ -35,7 +34,17 @@ interface Budget {
   category_color?: string;
 }
 
-function BudgetCard({ budget, delay, onDelete }: { budget: Budget; delay: number; onDelete: (id: string) => void }) {
+function BudgetCard({
+  budget,
+  delay,
+  onDelete,
+  onEdit,
+}: {
+  budget: Budget;
+  delay: number;
+  onDelete: (id: string) => void;
+  onEdit: (budget: Budget) => void;
+}) {
   const limit = Number(budget.amount_limit);
   const spent = Number(budget.spent || 0);
   const pct = limit > 0 ? Math.min((spent / limit) * 100, 100) : 0;
@@ -68,8 +77,14 @@ function BudgetCard({ budget, delay, onDelete }: { budget: Budget; delay: number
               {isOver ? 'Excedido' : 'Atenção'}
             </div>
           )}
+          <button onClick={() => onEdit(budget)}
+            className="p-1 rounded-lg opacity-30 hover:opacity-70 transition-opacity"
+            aria-label="Editar orçamento">
+            <Pencil size={12} style={{ color: 'var(--ink-900)' }} />
+          </button>
           <button onClick={() => onDelete(budget.id)}
-            className="p-1 rounded-lg opacity-30 hover:opacity-70 transition-opacity">
+            className="p-1 rounded-lg opacity-30 hover:opacity-70 transition-opacity"
+            aria-label="Apagar orçamento">
             <X size={12} style={{ color: 'var(--ink-900)' }} />
           </button>
         </div>
@@ -107,12 +122,18 @@ function BudgetCard({ budget, delay, onDelete }: { budget: Budget; delay: number
   );
 }
 
-function CreateBudgetModal({ onClose }: { onClose: () => void }) {
+function BudgetFormModal({ initial, onClose }: { initial?: Budget | null; onClose: () => void }) {
+  const isEdit = Boolean(initial);
   const { data: categories = [] } = useCategories();
-  const { mutate: create, isPending } = useCreateBudget();
+  const { mutate: create, isPending: isCreating } = useCreateBudget();
+  const { mutate: update, isPending: isUpdating } = useUpdateBudget();
+  const isPending = isCreating || isUpdating;
   const [form, setForm] = useState({
-    name: '', categoryId: '', amountLimit: '', alertThreshold: '80',
-    startDate: new Date().toISOString().split('T')[0],
+    name:           initial?.name ?? '',
+    categoryId:     initial?.category_id ?? '',
+    amountLimit:    initial ? String(initial.amount_limit) : '',
+    alertThreshold: initial ? String(initial.alert_threshold) : '80',
+    startDate:      new Date().toISOString().split('T')[0],
   });
   const [error, setError] = useState('');
 
@@ -120,17 +141,32 @@ function CreateBudgetModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     if (!form.name || !form.amountLimit) { setError('Nome e limite são obrigatórios'); return; }
     if (Number(form.amountLimit) <= 0) { setError('O limite deve ser maior que zero'); return; }
-    create(
-      {
-        name: form.name,
-        categoryId: form.categoryId || undefined,
-        amountLimit: Number(form.amountLimit),
-        alertThreshold: Number(form.alertThreshold),
-        startDate: form.startDate,
-        period: 'monthly',
-      },
-      { onSuccess: onClose, onError: () => setError('Erro ao criar orçamento') }
-    );
+    if (isEdit && initial) {
+      update(
+        {
+          id: initial.id,
+          data: {
+            name: form.name,
+            categoryId: form.categoryId || undefined,
+            amountLimit: Number(form.amountLimit),
+            alertThreshold: Number(form.alertThreshold),
+          },
+        },
+        { onSuccess: onClose, onError: () => setError('Erro ao atualizar orçamento') }
+      );
+    } else {
+      create(
+        {
+          name: form.name,
+          categoryId: form.categoryId || undefined,
+          amountLimit: Number(form.amountLimit),
+          alertThreshold: Number(form.alertThreshold),
+          startDate: form.startDate,
+          period: 'monthly',
+        },
+        { onSuccess: onClose, onError: () => setError('Erro ao criar orçamento') }
+      );
+    }
   }
 
   return (
@@ -141,7 +177,9 @@ function CreateBudgetModal({ onClose }: { onClose: () => void }) {
         className="w-full max-w-sm rounded-2xl p-6"
         style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-[16px] font-bold" style={{ color: 'var(--ink-900)' }}>Novo Orçamento</h2>
+          <h2 className="text-[16px] font-bold" style={{ color: 'var(--ink-900)' }}>
+            {isEdit ? 'Editar Orçamento' : 'Novo Orçamento'}
+          </h2>
           <button onClick={onClose}><X size={16} style={{ color: 'var(--ink-400)' }} /></button>
         </div>
 
@@ -190,7 +228,7 @@ function CreateBudgetModal({ onClose }: { onClose: () => void }) {
             className="w-full py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-50"
             style={{ background: 'var(--ink-900)' }}>
             {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-            {isPending ? 'A criar…' : 'Criar Orçamento'}
+            {isPending ? (isEdit ? 'A guardar…' : 'A criar…') : (isEdit ? 'Guardar alterações' : 'Criar Orçamento')}
           </button>
         </form>
       </motion.div>
@@ -202,6 +240,7 @@ export function BudgetsPage() {
   const { data: budgets = [], isLoading } = useBudgets();
   const { mutate: deleteBudget, isPending: isDeleting } = useDeleteBudget();
   const [showCreate, setShowCreate] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const totalLimit = budgets.reduce((s: number, b: Budget) => s + Number(b.amount_limit), 0);
@@ -209,13 +248,32 @@ export function BudgetsPage() {
   const overBudget = budgets.filter((b: Budget) => Number(b.spent || 0) > Number(b.amount_limit));
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div>;
+    return (
+      <div className="p-6 space-y-5 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-40 rounded-md animate-pulse" style={{ background: 'rgba(0,0,0,0.06)' }} />
+            <div className="h-3 w-56 rounded animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          </div>
+          <div className="h-10 w-36 rounded-xl animate-pulse" style={{ background: 'rgba(0,0,0,0.06)' }} />
+        </div>
+        <div className="h-28 rounded-2xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="h-36 rounded-2xl animate-pulse" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <>
       <AnimatePresence>
-        {showCreate && <CreateBudgetModal onClose={() => setShowCreate(false)} />}
+        {showCreate && <BudgetFormModal onClose={() => setShowCreate(false)} />}
+        {editingBudget && (
+          <BudgetFormModal initial={editingBudget} onClose={() => setEditingBudget(null)} />
+        )}
       </AnimatePresence>
       <ConfirmDialog
         open={deleteId !== null}
@@ -305,7 +363,8 @@ export function BudgetsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {budgets.map((budget: Budget, i: number) => (
               <BudgetCard key={budget.id} budget={budget} delay={0.10 + i * 0.05}
-                onDelete={(id) => setDeleteId(id)} />
+                onDelete={(id) => setDeleteId(id)}
+                onEdit={(b) => setEditingBudget(b)} />
             ))}
           </div>
         )}

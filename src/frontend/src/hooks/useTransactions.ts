@@ -78,3 +78,15 @@ export function useCategories() {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: categoriesApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Categoria criada');
+    },
+    onError: () => toast.error('Erro ao criar categoria'),
+  });
+}

@@ -150,8 +150,15 @@ export const goalsApi = {
 
 export const categoriesApi = {
   list:   () => api.get('/categories'),
-  create: (data: { name: string; namePt: string; icon: string; color: string }) =>
-    api.post('/categories', data),
+  create: (data: {
+    name: string;
+    namePt: string;
+    icon?: string;
+    color?: string;
+    parentId?: string;
+    isExpense?: boolean;
+    irsDeductionCategory?: string;
+  }) => api.post('/categories', data),
 };
 
 export const irsApi = {

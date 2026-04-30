@@ -4,6 +4,7 @@ import {
   ArrowLeftRight,
   PiggyBank,
   Target,
+  Tag,
   Calculator,
   Landmark,
   Settings,
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/investments',  icon: TrendingUp,      label: 'Investimentos' },
   { to: '/budgets',      icon: PiggyBank,       label: 'Orçamentos' },
   { to: '/goals',        icon: Target,          label: 'Metas' },
+  { to: '/categories',   icon: Tag,             label: 'Categorias' },
   { to: '/irs',          icon: Calculator,      label: 'Simulador IRS' },
   { to: '/learn',        icon: GraduationCap,   label: 'Aprende' },
 ];

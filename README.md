@@ -154,8 +154,10 @@ OPENAI_API_KEY=
 | POST | `/api/accounts/sync` | Sincronizar todas as contas |
 | GET | `/api/transactions` | Listar transações (com filtros e paginação) |
 | GET | `/api/transactions/summary` | Resumo de receitas/despesas por mês |
-| GET | `/api/budgets` | Listar orçamentos |
+| GET | `/api/budgets` | Listar orçamentos (inclui `spent` calculado das transações do mês) |
 | GET | `/api/goals` | Listar metas de poupança |
+| GET | `/api/categories` | Listar categorias (com `parent_id` para hierarquia) |
+| POST | `/api/categories` | Criar categoria/subcategoria (com `parentId` opcional) |
 | POST | `/api/irs/simulate` | Simular IRS 2024 |
 | GET | `/api/investments` | Listar portfólio de investimentos |
 | GET | `/api/market/quote/:ticker` | Cotação atual (Massive p/ ações & ETFs, CoinGecko p/ crypto) |
@@ -236,8 +238,8 @@ cd src/frontend && npm run typecheck && npm run lint && npm run build
 | 4b | ✅ | CI/CD, ESLint 9, Resend, remoção de demo mode |
 | 8 | ✅ | Investimentos: cotações Massive + CoinGecko, P&L live, gráfico |
 | 5 | ✅ | Dashboard + Transações com dados reais (skeletons, filtros mês/conta, fix categoria) |
-| 6 | 🔜 | Budgets + Goals + Categories ligados ao backend |
-| 7 | ⏳ | IRS Simulator persistente no backend |
+| 6 | ✅ | Budgets edição + Goals skeletons + CategoriesPage com subcategorias |
+| 7 | 🔜 | IRS Simulator persistente no backend |
 | 9 | ⏳ | PDF import de corretoras (Degiro, XTB, Trade Republic) |
 | 10 | ⏳ | Assistente Fiscal IA (OpenAI) |
 | 11 | ⏳ | Testes (Vitest + Jest, ≥70% cobertura) |
