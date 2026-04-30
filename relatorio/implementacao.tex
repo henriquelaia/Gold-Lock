@@ -4,9 +4,7 @@
 \section{Introdução}
 \label{sec:impl-intro}
 
-Este capítulo descreve os detalhes técnicos da implementação dos principais módulos do sistema Gold Lock. Para cada módulo, são apresentadas as decisões de implementação, os excertos de código mais relevantes e os desafios encontrados.
-
-% TODO: Preencher com os detalhes reais da implementação à medida que o desenvolvimento avança
+Este capítulo descreve os detalhes técnicos da implementação dos principais módulos do sistema Gold Lock. Para cada módulo, são apresentadas as decisões de implementação, os excertos de código mais relevantes e os desafios encontrados durante os Sprints 1 a 9.
 
 
 \section{Configuração do Ambiente de Desenvolvimento}
@@ -77,39 +75,33 @@ volumes:
 
 A estrutura do projeto segue uma organização por módulos:
 
-\begin{lstlisting}[caption={Estrutura de diretórios do projeto.},label={lst:structure}]
-goldlock/
-  docker-compose.yml # Orquestracao de todos os servicos
-  frontend/          # React + TypeScript
-    Dockerfile
-    src/
-      components/    # Componentes reutilizaveis
-      pages/         # Paginas da aplicacao
-      hooks/         # Custom hooks
-      services/      # Chamadas API
-      store/         # Estado global (Zustand)
-  backend/           # Node.js + Express
-    Dockerfile
-    src/
-      routes/        # Endpoints da API
-      controllers/   # Logica de negocio
-      models/        # Modelos de dados
-      middleware/     # Autenticacao, rate limiting
-      services/      # Integracao Salt Edge, ML
-  ml-service/        # Python (scikit-learn)
-    Dockerfile
-    app/
-      categorizer.py       # Pipeline TF-IDF + RF (categorização)
-      deduction_classifier.py  # Classificador ML de despesas dedutíveis
-      irs_engine.py        # Motor de regras CIRS 2025 (determinístico)
-      fiscal_optimizer.py  # Algoritmo de otimização de cenários fiscais
-    models/          # Modelos treinados (.pkl)
-    data/
-      cirs_2025.json       # Escalões e limites dedução (fonte: DR/OE 2025)
-      deduction_training_data.py  # Dataset derivado do CIRS para treino
-  database/
-    migrations/      # Migrations SQL
-    seeds/           # Dados de teste
+\begin{lstlisting}[caption={Estrutura de diretórios do projeto (real).},label={lst:structure}]
+FinTwin-Projeto/
+  docker-compose.yml      # Orquestracao dos 5 containers
+  .env                    # Variaveis de ambiente (na raiz)
+  src/
+    frontend/             # React 18 + TypeScript + Vite
+      src/
+        components/       # GlassCard, GlassButton, UI reutilizavel
+          investments/    # InvestmentSummaryCards e outros
+        pages/            # 13 paginas da aplicacao
+        hooks/            # useInvestments, useIRS, useMarketData...
+        services/api.ts   # Axios central + todos os API clients
+        store/            # Zustand (authStore, toastStore)
+    backend/              # Node.js 20 + Express 4 + TypeScript
+      src/
+        routes/           # 10 routers (auth, investments, irs...)
+        services/         # irsCalculator, pdfImportService,
+                          # marketDataService, saltEdgeService
+        middleware/       # authenticate, errorHandler, rateLimiter
+        config/           # database.ts (pg Pool), redis.ts
+      database/
+        init.sql          # Schema completo (10 tabelas + indices)
+        migrations/       # Migrations SQL incrementais
+    ml-service/           # Python 3.12 + Flask + scikit-learn
+      app/
+        categorizer.py    # Pipeline TF-IDF + Random Forest
+      models/             # Modelos treinados (.pkl)
 \end{lstlisting}
 
 
@@ -190,7 +182,47 @@ A integração Open Banking foi implementada utilizando a \ac{API} Salt Edge. O 
     \item O backend importa as transações e saldos
 \end{enumerate}
 
-% TODO: Adicionar excertos de código reais da integração Salt Edge
+O excerto seguinte mostra o handler do webhook Salt Edge (\texttt{routes/accounts.ts}), que processa o evento \texttt{connection.success} e importa automaticamente as contas bancárias para a base de dados local:
+
+\begin{lstlisting}[caption={Handler do webhook Salt Edge — importação automática de contas.},label={lst:saltedge-webhook}]
+accountsRouter.post('/webhook',
+  verifySaltEdgeWebhook,
+  async (req, res, next) => {
+  try {
+    const { data } = req.body as { data: WebhookData };
+    const eventType = data.stage ?? data.status;
+    const connectionId = data.connection_id;
+
+    if (
+      eventType === 'connection.success' ||
+      eventType === 'finish'
+    ) {
+      if (!connectionId || !data.customer_id) return;
+
+      // Importar contas da ligacao para a BD local
+      const remoteAccounts = await saltEdge
+        .getAccounts(connectionId);
+
+      for (const acc of remoteAccounts) {
+        await pool.query(
+          `INSERT INTO bank_accounts
+             (user_id, bank_name, account_name, iban,
+              salt_edge_connection_id, salt_edge_account_id,
+              balance, currency, status, last_synced_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'active',NOW())
+           ON CONFLICT (salt_edge_account_id) DO UPDATE
+             SET balance = EXCLUDED.balance,
+                 last_synced_at = NOW()`,
+          [userId, conn.provider_name, acc.name,
+           acc.extra?.iban ?? null, connectionId,
+           acc.id, acc.balance, acc.currency_code]
+        );
+      }
+    }
+    res.json({ acknowledged: true });
+  } catch (err) { next(err); }
+});
+\end{lstlisting}
 
 
 \section{Módulo de Categorização com ML}
@@ -205,7 +237,7 @@ O módulo de categorização automática utiliza um pipeline de \ac{ML} implemen
     \item \textbf{Aprendizagem contínua:} Quando o utilizador corrige uma categorização, a correção é armazenada e utilizada para re-treinar o modelo periodicamente.
 \end{enumerate}
 
-% TODO: Adicionar código real do pipeline ML
+O pipeline acima representa a implementação real do \texttt{ml-service}. O modelo é treinado com dados de transações portuguesas e servido via Flask no porto 5000. As previsões são consumidas pelo backend Node.js no endpoint \texttt{POST /api/transactions/categorize}.
 
 \begin{lstlisting}[caption={Pipeline de categorização (simplificado).},label={lst:ml},language=Python]
 # ml-service/training/categorizer.py
@@ -241,48 +273,112 @@ CATEGORIAS_PT = [
 
 O dashboard foi implementado em React 18 com TypeScript, utilizando TailwindCSS para estilização e Recharts para gráficos. Os efeitos Liquid Glass foram implementados com CSS \texttt{backdrop-filter} e animações com Framer Motion.
 
-% TODO: Adicionar screenshots e código real do dashboard
+O dashboard agrega dados de contas bancárias, transações e investimentos num único ecrã. A implementação utiliza \textit{skeleton screens} com \texttt{animate-pulse} durante o carregamento (React Query \texttt{isLoading}), evitando \textit{layout shift}. O estado global de autenticação é gerido com Zustand, e todas as chamadas à API passam pelo cliente Axios central em \texttt{services/api.ts}, que implementa refresh automático de token JWT em respostas 401.
+
+O padrão de hook React Query adotado em todos os módulos é o seguinte:
+
+\begin{lstlisting}[caption={Padrão de hook React Query (exemplo: useInvestments).},label={lst:reactquery}]
+// hooks/useInvestments.ts
+export function useInvestments() {
+  return useQuery({
+    queryKey: ['investments'],
+    queryFn: () =>
+      investmentsApi.list().then(r => r.data.data),
+  });
+}
+
+export function useCreateInvestment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: investmentsApi.create,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['investments'] });
+      toast.success('Investimento adicionado');
+    },
+  });
+}
+\end{lstlisting}
 
 
 \section{Módulo Simulador IRS}
 \label{sec:impl-irs}
 
-O simulador de \ac{IRS} implementa as regras fiscais portuguesas vigentes para o ano fiscal de 2025. O motor de cálculo é determinístico (baseado em regras do \ac{CIRS}), sem utilização de \ac{IA} generativa, garantindo a precisão e auditabilidade dos resultados.
+O simulador de \ac{IRS} implementa as regras fiscais portuguesas vigentes para o ano fiscal de 2024. O motor de cálculo é determinístico (baseado em regras do \ac{CIRS}), sem utilização de \ac{IA} generativa, garantindo a precisão e auditabilidade dos resultados.
 
 As funcionalidades implementadas incluem:
 \begin{itemize}
     \item Cálculo de \ac{IRS} para rendimentos de Categoria A (trabalho dependente)
-    \item Aplicação dos escalões de \ac{IRS} em vigor (OE 2025, Lei n.º~24-D/2024)
-    \item Cálculo de deduções à coleta (saúde, educação, habitação, encargos gerais familiares)
+    \item Aplicação dos escalões de \ac{IRS} em vigor (OE 2024, Lei n.º~82/2023)
+    \item Cálculo de deduções à coleta (saúde, educação, habitação, encargos gerais familiares, PPR)
     \item Integração das contribuições para a Segurança Social como deduções ao rendimento (art.º 25.º \ac{CIRS})
-    \item Comparação entre tributação conjunta e separada (casais)
+    \item Persistência do histórico de simulações por utilizador
 \end{itemize}
 
-A Tabela~\ref{tab:escaloes-irs-2025} apresenta os escalões de \ac{IRS} para 2025, conforme o Orçamento do Estado (Lei n.º~24-D/2024).
+A Tabela~\ref{tab:escaloes-irs-2024} apresenta os escalões de \ac{IRS} para 2024, conforme o Orçamento do Estado (Lei n.º~82/2023).
 
 \begin{table}[H]
 \centering
-\caption{Escalões de IRS 2025 (Categoria A --- trabalho dependente).}
-\label{tab:escaloes-irs-2025}
+\caption{Escalões de IRS 2024 implementados em \texttt{irsCalculator.ts} (Categoria A).}
+\label{tab:escaloes-irs-2024}
 \small
 \begin{tabularx}{\textwidth}{r r r X}
 \toprule
 \textbf{Escalão} & \textbf{Rendimento coletável (€)} & \textbf{Taxa} & \textbf{Parcela a abater (€)} \\
 \midrule
-1.º & Até 7\,703 & 13,0\% & --- \\
-2.º & De 7\,703 a 11\,623 & 18,0\% & 385,15 \\
-3.º & De 11\,623 a 16\,472 & 23,0\% & 966,30 \\
-4.º & De 16\,472 a 21\,321 & 26,0\% & 1\,460,46 \\
-5.º & De 21\,321 a 27\,146 & 32,75\% & 2\,899,48 \\
-6.º & De 27\,146 a 39\,791 & 37,0\% & 4\,052,68 \\
-7.º & De 39\,791 a 51\,997 & 43,5\% & 6\,638,71 \\
-8.º & De 51\,997 a 81\,199 & 45,0\% & 7\,418,22 \\
-9.º & Superior a 81\,199 & 48,0\% & 9\,854,19 \\
+1.º & Até 7\,703 & 13,25\% & 0,00 \\
+2.º & De 7\,703 a 11\,623 & 18,0\% & 365,89 \\
+3.º & De 11\,623 a 16\,472 & 23,0\% & 947,28 \\
+4.º & De 16\,472 a 21\,321 & 26,0\% & 1\,441,20 \\
+5.º & De 21\,321 a 27\,146 & 32,75\% & 2\,880,47 \\
+6.º & De 27\,146 a 39\,791 & 37,0\% & 4\,034,17 \\
+7.º & De 39\,791 a 51\,997 & 43,5\% & 6\,620,43 \\
+8.º & De 51\,997 a 81\,199 & 45,0\% & 7\,400,21 \\
+9.º & Superior a 81\,199 & 48,0\% & 9\,836,45 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-% TODO: Adicionar código do motor de regras quando implementado (Sprint 9)
+O motor de cálculo está encapsulado no serviço \texttt{irsCalculator.ts}, separado das rotas para facilitar testes unitários. O fluxo de cálculo é o seguinte:
+
+\begin{lstlisting}[caption={Motor de cálculo IRS 2024 --- função principal (irsCalculator.ts).},label={lst:irs-engine}]
+export function calculateIRS(input: IrsInput): IrsResult {
+  const { grossIncome, dependents,
+          socialSecurity, withholding, deductions } = input;
+
+  // 1. Deducao especifica Cat. A (art. 25 CIRS)
+  const specificDeduction = Math.max(socialSecurity, 4104);
+  const collectableIncome = grossIncome - specificDeduction;
+
+  // 2. Aplicar escaloes progressivos
+  const bracket = IRS_BRACKETS_2024.find(
+    b => collectableIncome >= b.min && collectableIncome < b.max
+  ) ?? IRS_BRACKETS_2024[IRS_BRACKETS_2024.length - 1];
+  const grossTax = collectableIncome * bracket.rate
+                   - bracket.parcel;
+
+  // 3. Deducoes a coleta (limites DEDUCTION_LIMITS_2024)
+  const healthDed = Math.min(
+    deductions.saude * DEDUCTION_LIMITS_2024.saude.rate,
+    DEDUCTION_LIMITS_2024.saude.limit
+  );
+  // ... idem para educacao, habitacao, restauracao, ppr
+
+  const netTax = Math.max(
+    0, grossTax - healthDed - eduDed - housingDed
+       - generalDed - pprDed - dependentsDed
+  );
+  const result = netTax - withholding;
+
+  return {
+    collectableIncome, grossTax, netTax,
+    result,
+    effectiveRate: grossIncome > 0
+      ? netTax / grossIncome * 100 : 0,
+    status: result > 0 ? 'to_pay' : 'refund',
+    // ...
+  };
+}
+\end{lstlisting}
 
 
 \section{Módulo de IA de Otimização Fiscal}
@@ -325,7 +421,7 @@ O motor de regras (\texttt{irs\_engine.py}) implementa o fluxo completo de cálc
 
 O otimizador (\texttt{fiscal\_optimizer.py}) gera e compara múltiplos cenários de declaração possíveis, aplicando um algoritmo \textit{greedy} com verificação exaustiva dos cenários de tributação conjunta e separada. Para cada cenário, invoca o motor de regras e recolhe o imposto final resultante. O output inclui: (1)~o cenário mais vantajoso com a poupança fiscal estimada face ao cenário base; (2)~lista de alertas sobre deduções não utilizadas ou próximas do limite legal; (3)~estimativa do impacto de despesas futuras no \ac{IRS} do ano seguinte (RF41).
 
-% TODO: Adicionar excertos de código quando implementado (Sprint 9)
+A implementação deste componente está prevista para o Sprint 10, conforme o roadmap do projeto. A interface do módulo Python (\texttt{fiscal\_optimizer.py}) e os endpoints REST de suporte (\texttt{POST /api/irs/optimize}) serão documentados nesta secção aquando da sua conclusão.
 
 
 \section{Módulo de Carteira de Investimentos}
@@ -333,57 +429,114 @@ O otimizador (\texttt{fiscal\_optimizer.py}) gera e compara múltiplos cenários
 
 O módulo de carteira de investimentos implementa a agregação de portfólios de múltiplas corretoras numa única plataforma, com consulta de preços em tempo real e análise de desempenho. A implementação divide-se em três componentes principais.
 
-\subsection{Importação de Dados por CSV e API}
+\subsection{Importação de Extractos PDF por Corretora}
 \label{sec:impl-invest-import}
 
-Cada corretora exporta os dados de transações num formato CSV distinto. São implementados parsers específicos para os formatos de exportação da XTB, Trading\,212, Lightyear, Freedom24, TradeRepublic e ByBit EU, normalizando os dados para o modelo de dados interno (\texttt{InvestmentTransaction}). Para as corretoras com API pública disponível (XTB xAPI e Trading\,212 REST API), é implementada adicionalmente a importação automática periódica, eliminando a necessidade de exportação manual.
+A importação de transações é realizada a partir de extractos PDF exportados pelas corretoras. O serviço \texttt{pdfImportService.ts} implementa três parsers de texto regex, um por corretora suportada: DEGIRO (formato europeu, datas \texttt{DD-MM-YYYY}), XTB (formato US, datas ISO) e Trade Republic (formato alemão, datas \texttt{DD.MM.YYYY}). A extracção de texto do PDF é feita com \texttt{pdfjs-dist} (build \textit{legacy} para Node.js, sem worker) e a detecção da corretora é automática por expressão regular sobre o cabeçalho do documento.
 
-\subsection{Preços em Tempo Real}
-\label{sec:impl-invest-prices}
+\begin{lstlisting}[caption={Parser DEGIRO --- regex de formato tabular (pdfImportService.ts).},label={lst:pdf-parser}]
+// Formato: DD-MM-YYYY HH:MM PRODUTO ISIN BOLSA
+//          Compra/Buy QTD PRECO CCY
+const TABULAR = /(\d{2}-\d{2}-\d{4})\s+\d{2}:\d{2}\s+(.+?)
+  \s+([A-Z]{2}[A-Z0-9]{10})\s+\S+\s+
+  (?:Compra|Buy)\s+(\d+(?:[.,]\d+)?)
+  \s+(\d+(?:[.,]\d+)?)\s+([A-Z]{3})/g;
 
-O serviço Python existente (\texttt{ml-service}) é estendido com dois novos módulos de consulta de preços:
-
-\begin{lstlisting}[caption={Consulta de preços de ações/ETFs via yfinance (price\_service.py).},label={lst:yfinance},language=Python]
-import yfinance as yf
-from flask import Blueprint, request, jsonify
-
-prices_bp = Blueprint('prices', __name__)
-
-@prices_bp.route('/prices/quote')
-def get_quotes():
-    symbols = request.args.get('symbols', '').split(',')
-    tickers = yf.Tickers(' '.join(symbols))
-    result = {}
-    for symbol in symbols:
-        info = tickers.tickers[symbol].fast_info
-        result[symbol] = {
-            'price': info.last_price,
-            'currency': info.currency,
-            'change_pct': (info.last_price - info.previous_close)
-                          / info.previous_close * 100
-        }
-    return jsonify(result)
+for (const m of text.matchAll(TABULAR)) {
+  const [, date, name, isin, qty, price, currency] = m;
+  if (!ISIN_RE.test(isin)) continue;
+  transactions.push({
+    isin, name: name.trim(),
+    type: inferType(name),
+    quantity: parseEuropeanNumber(qty),
+    purchasePrice: parseEuropeanNumber(price),
+    purchaseDate: ddMmYyyyToIso(date, '-'),
+    currency, institution: 'DEGIRO',
+  });
+}
 \end{lstlisting}
 
-Os preços são armazenados em cache Redis com TTL de 30 segundos, evitando chamadas repetidas às APIs externas e respeitando os limites de taxa (\textit{rate limiting}).
+\subsection{Cotações em Tempo Real via Massive API e CoinGecko}
+\label{sec:impl-invest-prices}
 
-\subsection{Análise de Carteira e P\&L}
-\label{sec:impl-invest-portfolio}
+As cotações de ações e ETFs são obtidas via \textbf{Massive API} (autenticação Bearer), implementada no serviço Node.js \texttt{marketDataService.ts}. As criptomoedas utilizam a API pública do \textbf{CoinGecko}. Esta decisão mantém toda a lógica de mercado no backend, evitando a exposição de chaves de API ao cliente.
 
-O \texttt{portfolioService.ts} agrega as \texttt{InvestmentTransactions} por ativo, calculando a posição atual (quantidade detida e custo médio de aquisição), o valor de mercado atual (via preço em tempo real) e o P\&L realizado e não realizado. O dashboard de investimentos apresenta:
+\begin{lstlisting}[caption={Consulta de cotação via Massive API com cache Redis (marketDataService.ts).},label={lst:massive-api}]
+// Auth: Bearer token --- nunca ?apiKey= (confirmado com a API)
+// Cache Redis: TTL 900s (15 min) para quotes
+async function getMassiveQuote(ticker: string): Promise<Quote> {
+  const cacheKey = `market:quote:${ticker}`;
+  const cached = await redisClient.get(cacheKey);
+  if (cached) return JSON.parse(cached) as Quote;
 
-\begin{itemize}
-    \item Carteira total valorizada com evolução histórica (gráfico Recharts)
-    \item Posições detalhadas por ativo com P\&L individual
-    \item Análise de diversificação por classe de ativo e por corretora
-    \item Integração do valor total de investimentos no saldo consolidado do dashboard principal
-\end{itemize}
+  const res = await fetch(
+    `https://api.massive.com/v2/aggs/ticker/${ticker}/prev`,
+    { headers: {
+        Authorization: `Bearer ${process.env.MASSIVE_API_KEY}`
+      }
+    }
+  );
+  const json = await res.json() as MassiveResponse;
+  const result = json.results?.[0];
+  const quote: Quote = {
+    price:     result?.c ?? 0,
+    change24h: result?.c && result?.o
+      ? ((result.c - result.o) / result.o) * 100 : 0,
+    source: 'massive',
+  };
+  await redisClient.set(cacheKey, JSON.stringify(quote),
+    { EX: 900 });
+  return quote;
+}
+\end{lstlisting}
 
-% TODO: Adicionar screenshots e excertos de código reais após implementação (Sprint 10)
+O serviço expõe três funções públicas (\texttt{getQuote}, \texttt{getHistory}, \texttt{searchTicker}) que seleccionam automaticamente o provedor correcto com base no tipo de ativo (\texttt{stock}/\texttt{etf} → Massive; \texttt{crypto} → CoinGecko).
+
+\subsection{Deduplicação e Confirmação de Importação}
+\label{sec:impl-invest-dedup}
+
+Antes de inserir transações importadas do PDF, o endpoint \texttt{POST /api/investments/import-pdf} verifica duplicados contra os registos existentes do utilizador, cruzando a combinação \texttt{(isin, purchase\_date, quantity)}. O resultado é devolvido ao frontend com um campo \texttt{duplicate: boolean} por transação, permitindo ao utilizador confirmar apenas as novas. A inserção final em \texttt{POST /api/investments/import-pdf/confirm} usa \texttt{ON CONFLICT DO NOTHING} sobre o índice único composto da tabela, garantindo idempotência mesmo que o utilizador confirme múltiplas vezes.
+
+\begin{lstlisting}[caption={Deduplicação antes do preview e inserção idempotente (routes/investments.ts).},label={lst:dedup}]
+// 1. Verificar duplicados para o preview
+const existing = await pool.query(
+  `SELECT isin, purchase_date, quantity
+   FROM investments
+   WHERE user_id = $1 AND isin IS NOT NULL`,
+  [req.user!.id]
+);
+const existingKeys = new Set(
+  existing.rows.map(r =>
+    `${r.isin}|${r.purchase_date}|${Number(r.quantity)}`)
+);
+const annotated = transactions.map(tx => ({
+  ...tx,
+  duplicate: tx.isin
+    ? existingKeys.has(
+        `${tx.isin}|${tx.purchaseDate}|${tx.quantity}`)
+    : false,
+}));
+
+// 2. Inserir com protecao de duplicados (confirm step)
+await pool.query(
+  `INSERT INTO investments
+     (user_id, name, ticker, isin, type, quantity,
+      purchase_price, purchase_date, currency,
+      risk_level, institution)
+   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'moderate',$10)
+   ON CONFLICT (user_id, isin, purchase_date, quantity)
+     WHERE isin IS NOT NULL AND purchase_date IS NOT NULL
+   DO NOTHING`,
+  [req.user!.id, tx.name, tx.ticker ?? null, ...]
+);
+\end{lstlisting}
+
+O dashboard de investimentos apresenta os cards de \textbf{Carteira Total} e \textbf{Rentabilidade Total} (P\&L) em tempo real, actualizados à medida que as cotações Massive/CoinGecko são carregadas. O componente \texttt{InvestmentSummaryCards} encapsula estes três cards de resumo (carteira total, P\&L e distribuição por risco), recebendo os valores já calculados como \textit{props} da página.
 
 
 \section{Conclusões}
 \label{sec:impl-conclusoes}
 
-% TODO: Atualizar com conclusões reais após a implementação
-A implementação do sistema seguiu o plano de sprints definido na Secção~\ref{sec:metodologia}, com entregas incrementais a cada duas semanas. Os principais desafios encontrados durante a implementação serão documentados nesta secção após a conclusão do desenvolvimento.
+A implementação do sistema seguiu o plano de sprints definido no roadmap do projeto, com entregas incrementais a cada duas semanas. Até ao Sprint 9 (Abril de 2026), os módulos de autenticação, Open Banking, categorização ML, dashboard, simulador de IRS e carteira de investimentos com importação de PDF estão funcionais e integrados.
+
+Os principais desafios encontrados foram: (1)~a autenticação Bearer na Massive API, que diverge do padrão \texttt{?apiKey=} documentado por outros fornecedores; (2)~a variabilidade de formato entre extractos PDF de diferentes versões das corretoras, que obrigou a parsers com duas \textit{regex} por corretora (tabular + narrativo); (3)~a consistência do cálculo IRS face às diferenças entre os Orçamentos do Estado 2024 e 2025. Os módulos restantes (Assistente Fiscal IA e deploy em produção) estão previstos para os Sprints 10--12.
