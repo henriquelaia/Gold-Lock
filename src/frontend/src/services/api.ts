@@ -162,13 +162,15 @@ export const categoriesApi = {
 };
 
 export const irsApi = {
-  simulate:         (data: Record<string, unknown>) => api.post('/irs/simulate', data),
-  brackets:         () => api.get('/irs/brackets'),
-  deductions:       () => api.get('/irs/deductions'),
-  deductionAlerts:  () => api.get('/irs/deduction-alerts'),
-  confirmAlert:     (id: string, confirmedType: string) =>
+  simulate:          (data: Record<string, unknown>) => api.post('/irs/simulate', data),
+  brackets:          () => api.get('/irs/brackets'),
+  deductions:        () => api.get('/irs/deductions'),
+  simulations:       () => api.get('/irs/simulations'),
+  simulation:        (id: string) => api.get(`/irs/simulations/${id}`),
+  deleteSimulation:  (id: string) => api.delete(`/irs/simulations/${id}`),
+  deductionAlerts:   () => api.get('/irs/deduction-alerts'),
+  confirmAlert:      (id: string, confirmedType: string) =>
     api.put(`/irs/deduction-alerts/${id}/confirm`, { confirmedType }),
-  optimize:         (data: Record<string, unknown>) => api.post('/irs/optimize', data),
 };
 
 export const fiscalProfileApi = {

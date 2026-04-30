@@ -69,23 +69,25 @@ Projeto académico UBI 2025/2026 — Henrique Miguel Silva Laia (Nº 51667)
 - `GoalsPage.tsx`: `LoadingSpinner` substituído por skeletons pulsantes (header + summary + grid 2x2)
 - Backend já tinha `spent` injectado em `GET /api/budgets` (subquery com transações do mês corrente) — sem alterações necessárias
 
+### Sprint 7 — IRS Simulator Persistente ✅
+- Backend: serviço novo `services/irsCalculator.ts` extraído de `routes/irs.ts` — única fonte de cálculo (separação regras fiscais ↔ HTTP)
+- **Bugfix B1: parcelas IRS_BRACKETS_2024 corrigidas** para valores oficiais OE 2024 (Lei 82/2023). Diferença anterior podia chegar a +731€ no escalão 5
+- Backend: `GET /api/irs/simulations` (histórico, LIMIT 50), `GET /:id` (detalhe), `DELETE /:id` (com filtro user_id obrigatório)
+- Frontend: hook novo `useDebouncedValue.ts` para debounce de 300 ms do form
+- Frontend: hook central `useIRS.ts` (preview, save, simulations list/delete, deduction alerts/confirm) com tipos `SimulateInput`/`SimulationResult`
+- **Refactor IRSSimulatorPage** — função `calculateIRS` inline removida; cálculo agora apenas no backend via `useSimulateIRSPreview` debounced. Zero divergência client/server, lógica fiscal num só sítio
+- Pré-preenchimento automático a partir de `fiscal_profile` na primeira render (guard `useRef`); botões "Carregar perfil" e "Guardar como perfil"
+- Botão "Guardar simulação" persiste em `irs_simulations` e é `disabled` durante fetch/save (evita estado parcial)
+- Secção colapsável "Histórico de Simulações" com skeletons e empty state; eliminar com `ConfirmDialog`
+- Secção "Alertas de Dedução" preparada (UI completa + skeletons + empty state explicativo) — geração de alertas pelo ML virá num sprint futuro
+- **Bugfix B2: removido `if (accessToken === 'demo-token')`** de `useFiscalProfile` (regra absoluta secção 15.2) e `ConnectBankModal`
+- **Bugfix B3: removido `irsApi.optimize`** fantasma (endpoint não existe no backend)
+
 ---
 
 ## Sprints Planeados
 
-### Sprint 7 — IRS Simulator Persistente 🔜 **(Próximo)**
-**Objetivo:** Guardar simulações IRS no backend, histórico de simulações por utilizador.
-
-**Tarefas:**
-- [ ] `POST /api/irs/simulate` — guardar resultado em `irs_simulations`
-- [ ] `GET /api/irs/simulations` — histórico de simulações do utilizador
-- [ ] `IRSSimulatorPage.tsx` — ligar ao backend, mostrar histórico
-- [ ] Pré-preencher dados do perfil fiscal (`fiscal_profile`) na simulação
-- [ ] Deduction alerts: ligar alertas automáticos às transações reais
-
----
-
-### Sprint 9 — PDF Import de Corretoras
+### Sprint 9 — PDF Import de Corretoras 🔜 **(Próximo)**
 **Objetivo:** Importar extratos PDF de Degiro, XTB e Trade Republic automaticamente.
 
 **Tarefas:**
