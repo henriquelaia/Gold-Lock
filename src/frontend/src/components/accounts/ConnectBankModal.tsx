@@ -1,8 +1,6 @@
 import { X, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useConnectBank } from '../../hooks/useAccounts';
-import { useAuthStore } from '../../store/authStore';
-import { toast } from '../../store/toastStore';
 
 const BANKS = [
   { name: 'Caixa Geral de Depósitos', logo: 'CGD', color: '#003B71' },
@@ -20,14 +18,8 @@ interface ConnectBankModalProps {
 
 export function ConnectBankModal({ isOpen, onClose }: ConnectBankModalProps) {
   const connectBank = useConnectBank();
-  const isDemo = useAuthStore(s => s.accessToken) === 'demo-token';
 
   function handleBankClick() {
-    if (isDemo) {
-      toast.info('Modo demo: os bancos já estão pré-ligados');
-      onClose();
-      return;
-    }
     const returnTo = `${window.location.origin}/accounts?connected=1`;
     connectBank.mutate(returnTo, { onSuccess: onClose });
   }

@@ -281,6 +281,7 @@ CREATE TABLE IF NOT EXISTS investments (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     ticker VARCHAR(20),
+    isin VARCHAR(12),                              -- ISIN (PDF import; opcional)
     type VARCHAR(20) NOT NULL CHECK (type IN ('stock', 'etf', 'bond', 'crypto', 'certificado', 'deposito')),
     quantity DECIMAL(18, 8) NOT NULL,
     purchase_price DECIMAL(15, 4) NOT NULL,
@@ -297,6 +298,12 @@ CREATE TABLE IF NOT EXISTS investments (
 
 CREATE INDEX IF NOT EXISTS idx_investments_user ON investments(user_id);
 CREATE INDEX IF NOT EXISTS idx_investments_ticker ON investments(ticker) WHERE ticker IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_investments_isin ON investments(isin) WHERE isin IS NOT NULL;
+
+-- Deduplicação para PDF import (Sprint 9): mesmo ISIN + data + quantidade no mesmo user
+CREATE UNIQUE INDEX IF NOT EXISTS uq_investments_user_isin_date_qty
+  ON investments(user_id, isin, purchase_date, quantity)
+  WHERE isin IS NOT NULL AND purchase_date IS NOT NULL;
 
 -- Constraints de unicidade para Salt Edge (evitar duplicados em sync)
 ALTER TABLE transactions ADD CONSTRAINT IF NOT EXISTS uq_transactions_salt_edge UNIQUE (salt_edge_transaction_id);

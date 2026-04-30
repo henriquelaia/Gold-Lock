@@ -158,7 +158,11 @@ OPENAI_API_KEY=
 | GET | `/api/goals` | Listar metas de poupança |
 | GET | `/api/categories` | Listar categorias (com `parent_id` para hierarquia) |
 | POST | `/api/categories` | Criar categoria/subcategoria (com `parentId` opcional) |
-| POST | `/api/irs/simulate` | Simular IRS 2024 |
+| POST | `/api/irs/simulate` | Simular IRS 2024 (flag `saveSimulation` persiste em `irs_simulations`) |
+| GET | `/api/irs/simulations` | Histórico de simulações do utilizador |
+| DELETE | `/api/irs/simulations/:id` | Eliminar simulação |
+| GET | `/api/irs/brackets` | Escalões IRS 2024 |
+| GET | `/api/irs/deduction-alerts` | Alertas de dedução pendentes (ML) |
 | GET | `/api/investments` | Listar portfólio de investimentos |
 | GET | `/api/market/quote/:ticker` | Cotação atual (Massive p/ ações & ETFs, CoinGecko p/ crypto) |
 | GET | `/api/market/search?q=` | Pesquisa de tickers |
@@ -239,8 +243,8 @@ cd src/frontend && npm run typecheck && npm run lint && npm run build
 | 8 | ✅ | Investimentos: cotações Massive + CoinGecko, P&L live, gráfico |
 | 5 | ✅ | Dashboard + Transações com dados reais (skeletons, filtros mês/conta, fix categoria) |
 | 6 | ✅ | Budgets edição + Goals skeletons + CategoriesPage com subcategorias |
-| 7 | 🔜 | IRS Simulator persistente no backend |
-| 9 | ⏳ | PDF import de corretoras (Degiro, XTB, Trade Republic) |
+| 7 | ✅ | IRS Simulator persistente + histórico + bugfix parcelas + remoção demo-token |
+| 9 | 🔜 | PDF import de corretoras (Degiro, XTB, Trade Republic) |
 | 10 | ⏳ | Assistente Fiscal IA (OpenAI) |
 | 11 | ⏳ | Testes (Vitest + Jest, ≥70% cobertura) |
 | 12 | ⏳ | Deploy + Relatório LaTeX final |

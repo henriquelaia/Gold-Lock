@@ -1,17 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import {
-  TrendingUp, Info, Shield, Flame, Minus, Plus, X, Loader2, BarChart2,
+  TrendingUp, Info, Shield, Flame, Minus, Plus, X, Loader2, BarChart2, Upload,
 } from 'lucide-react';
-import { useInvestments, useCreateInvestment, useDeleteInvestment } from '../hooks/useInvestments';
+import { useInvestments, useCreateInvestment, useDeleteInvestment, useImportPdf, useConfirmImport, type ParsedTxAnnotated, type ImportPreview } from '../hooks/useInvestments';
 import { useMarketQuote, useMarketHistory } from '../hooks/useMarketData';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { EmptyState } from '../components/ui/EmptyState';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { InvestmentSummaryCards } from '../components/investments/InvestmentSummaryCards';
 import { EUR_RATE } from '../config/constants';
 
 const eur = (v: number) =>
@@ -419,12 +420,208 @@ function CreateInvestmentModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Modal de importação PDF ─────────────────────────────────────────────────
+
+const TYPE_LABELS_SHORT: Record<string, string> = {
+  stock: 'Ação', etf: 'ETF', crypto: 'Crypto',
+};
+
+function PdfImportModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<'drop' | 'preview'>('drop');
+  const [isDragging, setIsDragging] = useState(false);
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const { mutate: importPdf, isPending: isParsing } = useImportPdf();
+  const { mutate: confirmImport, isPending: isConfirming } = useConfirmImport();
+
+  function handleFile(file: File) {
+    if (!file.name.endsWith('.pdf')) return;
+    importPdf(file, {
+      onSuccess: (data) => {
+        setPreview(data);
+        const initialSelected = new Set(
+          data.transactions
+            .map((_, i) => i)
+            .filter(i => !data.transactions[i].duplicate)
+        );
+        setSelected(initialSelected);
+        setStep('preview');
+      },
+    });
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }
+
+  function toggleRow(i: number) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i); else next.add(i);
+      return next;
+    });
+  }
+
+  function handleConfirm() {
+    if (!preview) return;
+    const toImport = preview.transactions
+      .filter((_, i) => selected.has(i))
+      .map(({ duplicate: _d, ...tx }) => tx);
+    confirmImport(toImport, { onSuccess: () => onClose() });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(17,17,16,0.4)', backdropFilter: 'blur(4px)' }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-2xl rounded-2xl p-6 max-h-[88vh] flex flex-col"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5 shrink-0">
+          <div>
+            <h2 className="text-[16px] font-bold" style={{ color: 'var(--ink-900)' }}>
+              Importar PDF de Corretora
+            </h2>
+            {step === 'preview' && preview && (
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ink-400)' }}>
+                {preview.broker.toUpperCase()} · {preview.total} transações detectadas
+              </p>
+            )}
+          </div>
+          <button onClick={onClose}><X size={16} style={{ color: 'var(--ink-400)' }} /></button>
+        </div>
+
+        {/* Drop zone */}
+        {step === 'drop' && (
+          <div
+            onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileRef.current?.click()}
+            className="flex-1 flex flex-col items-center justify-center rounded-2xl cursor-pointer transition-colors min-h-48"
+            style={{
+              border: `2px dashed ${isDragging ? 'var(--gold)' : 'var(--gold-border)'}`,
+              background: isDragging ? 'var(--gold-subtle)' : 'transparent',
+            }}>
+            <input ref={fileRef} type="file" accept=".pdf" className="hidden"
+              onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+            {isParsing ? (
+              <Loader2 size={28} className="animate-spin" style={{ color: 'var(--gold)' }} />
+            ) : (
+              <>
+                <Upload size={28} style={{ color: 'var(--gold)' }} />
+                <p className="mt-3 text-sm font-semibold" style={{ color: 'var(--ink-900)' }}>
+                  Arrasta o PDF da tua corretora
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ink-400)' }}>
+                  DEGIRO · XTB · Trade Republic
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Preview table */}
+        {step === 'preview' && preview && (
+          <>
+            <div className="overflow-auto flex-1 rounded-xl" style={{ border: '1px solid var(--border)' }}>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}>
+                    <th className="w-8 px-3 py-2.5"></th>
+                    <th className="px-3 py-2.5 text-left font-semibold" style={{ color: 'var(--ink-400)' }}>Nome</th>
+                    <th className="px-3 py-2.5 text-left font-semibold" style={{ color: 'var(--ink-400)' }}>ISIN</th>
+                    <th className="px-3 py-2.5 text-right font-semibold" style={{ color: 'var(--ink-400)' }}>Qtd</th>
+                    <th className="px-3 py-2.5 text-right font-semibold" style={{ color: 'var(--ink-400)' }}>Preço</th>
+                    <th className="px-3 py-2.5 text-left font-semibold" style={{ color: 'var(--ink-400)' }}>Data</th>
+                    <th className="px-3 py-2.5 text-left font-semibold" style={{ color: 'var(--ink-400)' }}>Tipo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.transactions.map((tx: ParsedTxAnnotated, i: number) => (
+                    <tr key={i}
+                      onClick={() => toggleRow(i)}
+                      className="cursor-pointer transition-colors"
+                      style={{
+                        background: tx.duplicate ? 'rgba(245,158,11,0.04)' : 'transparent',
+                        opacity: tx.duplicate && !selected.has(i) ? 0.5 : 1,
+                        borderBottom: '1px solid var(--border)',
+                      }}>
+                      <td className="px-3 py-2.5 text-center">
+                        <input type="checkbox" readOnly checked={selected.has(i)}
+                          className="accent-[#C9A227] cursor-pointer" />
+                      </td>
+                      <td className="px-3 py-2.5 font-medium max-w-[180px] truncate" style={{ color: 'var(--ink-900)' }}>
+                        {tx.name}
+                        {tx.duplicate && (
+                          <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                            style={{ background: 'rgba(245,158,11,0.15)', color: '#B45309' }}>
+                            DUP
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--ink-400)' }}>{tx.isin ?? '—'}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: 'var(--ink-900)' }}>{tx.quantity}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums" style={{ color: 'var(--ink-900)' }}>
+                        {tx.purchasePrice.toFixed(2)} {tx.currency}
+                      </td>
+                      <td className="px-3 py-2.5" style={{ color: 'var(--ink-500)' }}>{tx.purchaseDate}</td>
+                      <td className="px-3 py-2.5">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                          style={{ background: 'var(--gold-subtle)', color: 'var(--gold)' }}>
+                          {TYPE_LABELS_SHORT[tx.type] ?? tx.type}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between mt-4 shrink-0">
+              <p className="text-xs" style={{ color: 'var(--ink-400)' }}>
+                {selected.size} de {preview.total} selecionados
+                {preview.transactions.some((t: ParsedTxAnnotated) => t.duplicate) && (
+                  <span className="ml-1.5" style={{ color: '#B45309' }}>· duplicados desmarcados</span>
+                )}
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setStep('drop')}
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  style={{ border: '1px solid var(--border)', color: 'var(--ink-500)' }}>
+                  Voltar
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={selected.size === 0 || isConfirming}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40"
+                  style={{ background: 'var(--ink-900)' }}>
+                  {isConfirming ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+                  {isConfirming ? 'A importar…' : 'Confirmar importação'}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 // ── Página principal ────────────────────────────────────────────────────────
 
 export function InvestmentsPage() {
   const [activeTab, setActiveTab] = useState<'todos' | InvestmentType>('todos');
   const [showNote, setShowNote] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [historyInv, setHistoryInv] = useState<Investment | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -471,6 +668,13 @@ export function InvestmentsPage() {
   }, 0);
   const hasAnyLivePrice = livePrices.size > 0;
 
+  const riskStats = (['guaranteed', 'moderate', 'high'] as const).map(risk => {
+    const val = invList
+      .filter(i => i.risk_level === risk)
+      .reduce((s, i) => s + getInvCost(i), 0);
+    return { risk, pct: totalPortfolioValue > 0 ? (val / totalPortfolioValue) * 100 : 0 };
+  });
+
   const donutData = Object.entries(
     invList.reduce<Record<string, number>>((acc, inv) => {
       const livePrice = livePrices.get(inv.id);
@@ -494,6 +698,7 @@ export function InvestmentsPage() {
     <>
       <AnimatePresence>
         {showCreate && <CreateInvestmentModal onClose={() => setShowCreate(false)} />}
+        {showImport && <PdfImportModal onClose={() => setShowImport(false)} />}
         {historyInv && <HistoryModal inv={historyInv} onClose={() => setHistoryInv(null)} />}
       </AnimatePresence>
 
@@ -513,6 +718,12 @@ export function InvestmentsPage() {
               <Info size={12} />
               Nota
             </button>
+            <button onClick={() => setShowImport(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-colors"
+              style={{ background: 'var(--gold-subtle)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}>
+              <Upload size={12} />
+              Importar PDF
+            </button>
             <button onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80"
               style={{ background: 'var(--ink-900)' }}>
@@ -531,7 +742,7 @@ export function InvestmentsPage() {
               style={{ background: 'var(--gold-subtle)', border: '1px solid var(--gold-border)' }}>
               <p className="font-semibold mb-1" style={{ color: 'var(--ink-900)' }}>Cotações e P&L</p>
               <p style={{ color: 'var(--ink-500)' }}>
-                Ações e ETFs usam <strong>Polygon.io</strong> (15 min delay, plano free).
+                Ações e ETFs usam <strong>Massive API</strong> (15 min delay, plano free).
                 Crypto usa <strong>CoinGecko</strong> (gratuito). Depósitos e Certificados de Aforro
                 têm capital garantido — sem cotação automática.
               </p>
@@ -548,81 +759,16 @@ export function InvestmentsPage() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              <motion.div {...fadeUp(0.06)} className="rounded-2xl p-5 flex flex-col justify-between"
-                style={{ background: 'var(--ink-900)', minHeight: 130 }}>
-                <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                  Carteira Total
-                </span>
-                <div>
-                  <p className="text-[26px] font-black text-white tabular-nums leading-none">{eur(totalPortfolioValue)}</p>
-                  <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                    {invList.length} posições · {new Set(invList.map(i => i.type)).size} classes de ativos
-                    {hasAnyLivePrice && ' · cotações live'}
-                  </p>
-                </div>
-              </motion.div>
+            <InvestmentSummaryCards
+              totalPortfolioValue={totalPortfolioValue}
+              totalPL={totalPL}
+              totalCost={totalCost}
+              hasAnyLivePrice={hasAnyLivePrice}
+              positionCount={invList.length}
+              assetClassCount={new Set(invList.map(i => i.type)).size}
+              riskStats={riskStats}
+            />
 
-              <motion.div {...fadeUp(0.10)} className="rounded-2xl p-5 flex flex-col justify-between" style={card}>
-                <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--ink-300)' }}>
-                  Rentabilidade Total
-                </span>
-                <div>
-                  {!hasAnyLivePrice ? (
-                    <>
-                      <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--ink-400)' }}>—</p>
-                      <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--ink-300)' }}>
-                        A carregar cotações…
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-[22px] font-black tabular-nums leading-none"
-                        style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
-                        {totalPL >= 0 ? '+' : ''}{eur(totalPL)}
-                      </p>
-                      <p className="text-xs mt-1.5 font-medium"
-                        style={{ color: totalPL >= 0 ? '#22c55e' : '#ef4444' }}>
-                        {totalCost > 0 ? `${((totalPL / totalCost) * 100).toFixed(2)}%` : ''} · preço real
-                      </p>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-
-              <motion.div {...fadeUp(0.14)} className="rounded-2xl p-5" style={card}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--ink-300)' }}>
-                  Por Nível de Risco
-                </p>
-                <div className="space-y-2">
-                  {(['guaranteed', 'moderate', 'high'] as const).map(risk => {
-                    const cfg = RISK_CONFIG[risk];
-                    const val = invList.filter(i => i.risk_level === risk).reduce((s, i) => s + getInvCost(i), 0);
-                    const pctVal = totalPortfolioValue > 0 ? (val / totalPortfolioValue) * 100 : 0;
-                    return (
-                      <div key={risk} className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                          style={{ background: cfg.bg }}>
-                          <cfg.Icon size={11} style={{ color: cfg.color }} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between mb-0.5">
-                            <span className="text-xs font-medium" style={{ color: 'var(--ink-700)' }}>{cfg.label}</span>
-                            <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ink-900)' }}>
-                              {pctVal.toFixed(0)}%
-                            </span>
-                          </div>
-                          <div className="h-1 rounded-full" style={{ background: 'var(--ink-100)' }}>
-                            <div className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${pctVal}%`, background: cfg.color }} />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <motion.div {...fadeUp(0.18)} className="rounded-2xl p-5" style={card}>

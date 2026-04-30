@@ -1,15 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fiscalProfileApi } from '../services/api';
-import { useAuthStore } from '../store/authStore';
 import { toast } from '../store/toastStore';
 
 export function useFiscalProfile() {
   return useQuery({
     queryKey: ['fiscal-profile'],
-    queryFn: async () => {
-      if (useAuthStore.getState().accessToken === 'demo-token') return null;
-      return fiscalProfileApi.get().then(r => r.data.data);
-    },
+    queryFn: () => fiscalProfileApi.get().then(r => r.data.data),
   });
 }
 
