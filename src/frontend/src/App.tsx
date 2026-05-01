@@ -17,8 +17,9 @@ import { CategoriesPage }    from './pages/CategoriesPage';
 import { AccountsPage }      from './pages/AccountsPage';
 import { IRSSimulatorPage }  from './pages/IRSSimulatorPage';
 import { SettingsPage }      from './pages/SettingsPage';
-import { InvestmentsPage }   from './pages/InvestmentsPage';
-import { LearnPage }         from './pages/LearnPage';
+import { InvestmentsPage }       from './pages/InvestmentsPage';
+import { FiscalAssistantPage }   from './pages/FiscalAssistantPage';
+import { LearnPage }             from './pages/LearnPage';
 import { NotFoundPage }      from './pages/NotFoundPage';
 
 function App() {
@@ -41,8 +42,9 @@ function App() {
             <Route path="/categories"   element={<CategoriesPage />} />
             <Route path="/accounts"     element={<AccountsPage />} />
             <Route path="/investments"  element={<InvestmentsPage />} />
-            <Route path="/irs"          element={<IRSSimulatorPage />} />
-            <Route path="/learn"        element={<LearnPage />} />
+            <Route path="/irs"               element={<IRSSimulatorPage />} />
+            <Route path="/fiscal-assistant" element={<FiscalAssistantPage />} />
+            <Route path="/learn"            element={<LearnPage />} />
             <Route path="/settings"     element={<SettingsPage />} />
           </Route>
         </Route>

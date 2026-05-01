@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calculator, ChevronDown, Info, TrendingDown,
-  Save, Download, Loader2, X, FileBarChart,
+  Save, Download, Loader2, X, FileBarChart, Brain,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -91,6 +92,7 @@ const DEFAULT_FORM: SimulateInput = {
 };
 
 export function IRSSimulatorPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState<SimulateInput>(DEFAULT_FORM);
   const [showBrackets, setShowBrackets] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
@@ -272,15 +274,24 @@ export function IRSSimulatorPage() {
             {/* Card resultado */}
             <ResultCard result={result} isRefund={isRefund} refundAmount={refundAmount} isCalculating={isCalculating} />
 
-            {/* Botão guardar simulação */}
-            <button
-              onClick={() => saveSimulation(form)}
-              disabled={isWorking || !result}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: 'var(--ink-900)' }}>
-              {isSavingSim ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              {isSavingSim ? 'A guardar…' : 'Guardar simulação'}
-            </button>
+            {/* Botões de ação */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => saveSimulation(form)}
+                disabled={isWorking || !result}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: 'var(--ink-900)' }}>
+                {isSavingSim ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                {isSavingSim ? 'A guardar…' : 'Guardar'}
+              </button>
+              <button
+                onClick={() => navigate('/fiscal-assistant')}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: 'var(--gold-subtle)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}>
+                <Brain size={14} />
+                IA
+              </button>
+            </div>
 
             {/* Breakdown */}
             {result && <BreakdownCard result={result} />}

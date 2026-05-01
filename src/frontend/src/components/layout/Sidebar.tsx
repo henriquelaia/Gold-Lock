@@ -11,6 +11,7 @@ import {
   LogOut,
   TrendingUp,
   GraduationCap,
+  Brain,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -23,8 +24,9 @@ const navItems = [
   { to: '/budgets',      icon: PiggyBank,       label: 'Orçamentos' },
   { to: '/goals',        icon: Target,          label: 'Metas' },
   { to: '/categories',   icon: Tag,             label: 'Categorias' },
-  { to: '/irs',          icon: Calculator,      label: 'Simulador IRS' },
-  { to: '/learn',        icon: GraduationCap,   label: 'Aprende' },
+  { to: '/irs',               icon: Calculator,    label: 'Simulador IRS' },
+  { to: '/fiscal-assistant',  icon: Brain,         label: 'Assistente IA' },
+  { to: '/learn',             icon: GraduationCap, label: 'Aprende' },
 ];
 
 interface SidebarProps {
