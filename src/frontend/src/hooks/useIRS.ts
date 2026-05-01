@@ -8,6 +8,9 @@ export interface SimulateInput {
   dependents: number;
   socialSecurityContributions: number;
   withholdingTax: number;
+  age?: number;
+  irsJovem?: boolean;
+  yearsWorking?: number;
   deductions: {
     saude: number;
     educacao: number;
@@ -22,6 +25,7 @@ export interface SimulationResult {
   collectableIncome: number;
   specificDeduction: number;
   grossTax: number;
+  irsJovemExemption: number;
   deductions: {
     dependents: number;
     health: number;

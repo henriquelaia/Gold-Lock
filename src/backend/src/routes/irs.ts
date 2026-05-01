@@ -5,8 +5,9 @@ import { pool } from '../config/database.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
   calculateIRS,
-  IRS_BRACKETS_2024,
-  DEDUCTION_LIMITS_2024,
+  IRS_BRACKETS_2026,
+  DEDUCTION_LIMITS_2026,
+  getPprLimit,
 } from '../services/irsCalculator.js';
 
 export const irsRouter = Router();
@@ -19,6 +20,9 @@ const SimulateSchema = z.object({
   dependents:                    z.number().int().min(0).default(0),
   socialSecurityContributions:   z.number().min(0).default(0),
   withholdingTax:                z.number().min(0).default(0),
+  age:                           z.number().int().min(16).max(100).optional(),
+  irsJovem:                      z.boolean().optional(),
+  yearsWorking:                  z.number().int().min(1).max(10).optional(),
   deductions: z.object({
     saude:       z.number().min(0).default(0),
     educacao:    z.number().min(0).default(0),
@@ -39,6 +43,9 @@ irsRouter.post('/simulate', authenticate, async (req, res, next) => {
       socialSecurity: body.socialSecurityContributions,
       withholding:    body.withholdingTax,
       deductions:     body.deductions,
+      age:            body.age,
+      irsJovem:       body.irsJovem,
+      yearsWorking:   body.yearsWorking,
     });
 
     if (body.saveSimulation) {
@@ -65,16 +72,21 @@ irsRouter.post('/simulate', authenticate, async (req, res, next) => {
   }
 });
 
-// ── GET /brackets — escalões 2024 ────────────────────────────────────────
+// ── GET /brackets — escalões 2026 ────────────────────────────────────────
 
 irsRouter.get('/brackets', authenticate, (_req, res) => {
-  res.json({ status: 'success', data: { year: 2024, brackets: IRS_BRACKETS_2024 } });
+  res.json({ status: 'success', data: { year: 2026, brackets: IRS_BRACKETS_2026 } });
 });
 
 // ── GET /deductions — limites de dedução ─────────────────────────────────
 
-irsRouter.get('/deductions', authenticate, (_req, res) => {
-  res.json({ status: 'success', data: DEDUCTION_LIMITS_2024 });
+irsRouter.get('/deductions', authenticate, (req, res) => {
+  const age = req.query['age'] ? Number(req.query['age']) : null;
+  const limits = {
+    ...DEDUCTION_LIMITS_2026,
+    ppr: { ...DEDUCTION_LIMITS_2026.ppr, limit: age != null ? getPprLimit(age) : DEDUCTION_LIMITS_2026.ppr.limit },
+  };
+  res.json({ status: 'success', data: limits });
 });
 
 // ── GET /simulations — histórico do utilizador ───────────────────────────

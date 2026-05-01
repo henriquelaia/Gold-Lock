@@ -64,7 +64,7 @@ function ScoreCard({ score, badge, optimizationPotential, marginalRate }: {
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest mb-1"
             style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Score Fiscal 2024
+            Score Fiscal 2026
           </p>
           <div className="flex items-end gap-2">
             <span className="text-[48px] font-black leading-none text-white tabular-nums">{score}</span>
@@ -341,7 +341,7 @@ export function FiscalAssistantPage() {
                 Assistente Fiscal IA
               </h1>
               <p className="text-xs" style={{ color: 'var(--ink-400)' }}>
-                Análise baseada em Machine Learning · OE 2024
+                Análise baseada em Machine Learning · OE 2026
               </p>
             </div>
           </div>

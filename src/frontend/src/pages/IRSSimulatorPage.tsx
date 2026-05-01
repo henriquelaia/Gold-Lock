@@ -25,25 +25,25 @@ const eur = (v: number) =>
 
 const pct = (v: number) => `${v.toFixed(2)}%`;
 
-// Metadados UI das deduções (paridade com backend `services/irsCalculator.ts:DEDUCTION_LIMITS_2024`)
+// Metadados UI das deduções (paridade com backend `services/irsCalculator.ts:DEDUCTION_LIMITS_2026`)
 const DEDUCTION_UI = {
   saude:       { rate: 0.15, limit: 1000, label: 'Saúde (art.º 78.º-C)',           article: '15%, limite 1.000 €' },
   educacao:    { rate: 0.30, limit: 800,  label: 'Educação (art.º 78.º-D)',        article: '30%, limite 800 €' },
   habitacao:   { rate: 0.15, limit: 296,  label: 'Habitação/Juros (art.º 78.º-E)', article: '15%, limite 296 €' },
   restauracao: { rate: 0.15, limit: 250,  label: 'Restauração (art.º 78.º-B)',     article: '15%, limite 250 €' },
-  ppr:         { rate: 0.20, limit: 400,  label: 'PPR (art.º 21.º EBF)',           article: '20%, até 400 €' },
+  ppr:         { rate: 0.20, limit: 400,  label: 'PPR (art.º 21.º EBF)',           article: '20%, até 400 € (≤34 anos)' },
 } as const;
 
-const BRACKETS_2024_UI = [
-  { min: 0,      max: 7703,   rate: 13.25 },
-  { min: 7703,   max: 11623,  rate: 18.00 },
-  { min: 11623,  max: 16472,  rate: 23.00 },
-  { min: 16472,  max: 21321,  rate: 26.00 },
-  { min: 21321,  max: 27146,  rate: 32.75 },
-  { min: 27146,  max: 39791,  rate: 37.00 },
-  { min: 39791,  max: 51997,  rate: 43.50 },
-  { min: 51997,  max: 81199,  rate: 45.00 },
-  { min: 81199,  max: Infinity, rate: 48.00 },
+const BRACKETS_2026_UI = [
+  { min: 0,      max: 8342,   rate: 12.50 },
+  { min: 8342,   max: 12587,  rate: 15.70 },
+  { min: 12587,  max: 17838,  rate: 21.20 },
+  { min: 17838,  max: 23089,  rate: 24.10 },
+  { min: 23089,  max: 29397,  rate: 31.10 },
+  { min: 29397,  max: 43090,  rate: 34.90 },
+  { min: 43090,  max: 46567,  rate: 43.10 },
+  { min: 46567,  max: 86634,  rate: 44.60 },
+  { min: 86634,  max: Infinity, rate: 48.00 },
 ];
 
 const DEDUCTION_TYPE_LABELS: Record<string, string> = {
@@ -88,6 +88,8 @@ const DEFAULT_FORM: SimulateInput = {
   dependents:                  0,
   socialSecurityContributions: 2640,
   withholdingTax:              3800,
+  irsJovem:                    false,
+  yearsWorking:                1,
   deductions:                  { saude: 0, educacao: 0, habitacao: 0, restauracao: 0, ppr: 0 },
 };
 
@@ -167,10 +169,10 @@ export function IRSSimulatorPage() {
           <div>
             <h1 className="text-2xl font-bold text-[var(--ink-900)] flex items-center gap-2">
               <Calculator size={22} className="text-[var(--gold)]" />
-              Simulador IRS 2024
+              Simulador IRS 2026
             </h1>
             <p className="text-sm text-[var(--ink-500)]/50 mt-0.5">
-              Cálculo baseado nos escalões do OE 2024 · Art.º 68.º CIRS
+              Escalões OE 2026 (Lei 73-A/2025) · Art.º 68.º CIRS
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -212,6 +214,39 @@ export function IRSSimulatorPage() {
                 onChange={v => setForm(f => ({ ...f, socialSecurityContributions: v }))} />
               <Field label="Retenções na Fonte (total retido no ano)" value={form.withholdingTax}
                 onChange={v => setForm(f => ({ ...f, withholdingTax: v }))} />
+
+              {/* IRS Jovem */}
+              <div className="rounded-xl p-3 space-y-3" style={{ background: 'var(--gold-subtle)', border: '1px solid var(--gold-border)' }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-[var(--ink-900)]">IRS Jovem (art.º 12.º-B CIRS)</p>
+                    <p className="text-[10px] text-[var(--ink-500)]/50 mt-0.5">≤ 35 anos · até 10 anos após fim de estudos</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, irsJovem: !f.irsJovem }))}
+                    className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${form.irsJovem ? 'bg-[var(--gold)]' : 'bg-[var(--ink-500)]/20'}`}>
+                    <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.irsJovem ? 'translate-x-4' : ''}`} />
+                  </button>
+                </div>
+                {form.irsJovem && (
+                  <div>
+                    <label className="block text-xs font-semibold text-[var(--ink-500)]/60 mb-1.5">
+                      Ano de carreira (1–10)
+                    </label>
+                    <select
+                      value={form.yearsWorking ?? 1}
+                      onChange={e => setForm(f => ({ ...f, yearsWorking: Number(e.target.value) }))}
+                      className="w-full px-3 py-2 rounded-xl text-sm font-semibold text-[var(--ink-900)] outline-none"
+                      style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid var(--gold-border)' }}>
+                      {[1,2,3,4,5,6,7,8,9,10].map(n => {
+                        const rate = n === 1 ? 100 : n <= 4 ? 75 : n <= 7 ? 50 : 25;
+                        return <option key={n} value={n}>Ano {n} — {rate}% isenção</option>;
+                      })}
+                    </select>
+                  </div>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -302,7 +337,7 @@ export function IRSSimulatorPage() {
               style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <button onClick={() => setShowBrackets(s => !s)}
                 className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-[var(--ink-900)] hover:bg-black/[0.02] transition-colors">
-                <span className="flex items-center gap-2"><TrendingDown size={13} className="text-[var(--gold)]" />Escalões IRS 2024</span>
+                <span className="flex items-center gap-2"><TrendingDown size={13} className="text-[var(--gold)]" />Escalões IRS 2026</span>
                 <ChevronDown size={14} className={`text-[var(--ink-500)]/40 transition-transform ${showBrackets ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
@@ -310,7 +345,7 @@ export function IRSSimulatorPage() {
                   <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
                     className="overflow-hidden">
                     <div className="px-5 pb-4 space-y-1">
-                      {BRACKETS_2024_UI.map((b, i) => {
+                      {BRACKETS_2026_UI.map((b, i) => {
                         const taxable = result?.collectableIncome ?? 0;
                         const isActive = taxable > b.min && taxable <= (b.max === Infinity ? Infinity : b.max);
                         return (
@@ -395,6 +430,7 @@ function BreakdownCard({ result }: { result: NonNullable<ReturnType<typeof useSi
 
       {[
         { label: 'Rendimento Bruto',                          value: eur(result.grossIncome),                color: 'var(--ink-900)' },
+        ...(result.irsJovemExemption > 0 ? [{ label: 'IRS Jovem — Isenção (art.º 12.º-B)',  value: `−${eur(result.irsJovemExemption)}`, color: '#f59e0b' }] : []),
         { label: `Dedução Específica (Cat. A)`,               value: `−${eur(result.specificDeduction)}`,    color: '#ef4444' },
         { label: 'Rendimento Coletável',                      value: eur(result.collectableIncome),          color: 'var(--ink-900)', bold: true },
         { label: `Imposto Bruto (escalão ${result.bracket.rate.toFixed(2)}%)`, value: `−${eur(result.grossTax)}`, color: '#ef4444' },
