@@ -296,7 +296,9 @@ def generate_predictor_dataset(n_profiles: int = 400) -> list[dict]:
             noise_factor = random.gauss(1.0, 0.15)
             year_end_actual = round(min(limit * 1.2, cumulative + avg_monthly * months_remaining * noise_factor), 2)
 
-            for m_idx, val in enumerate(monthly_values, 1):
+            # sempre 12 colunas mensais — futuros = 0
+            all_months = monthly_values + [0.0] * (12 - len(monthly_values))
+            for m_idx, val in enumerate(all_months, 1):
                 row[f"{cat}_m{m_idx:02d}"] = val
             row[f"{cat}_cumulative"] = round(cumulative, 2)
             row[f"{cat}_avg_monthly"] = round(avg_monthly, 2)
