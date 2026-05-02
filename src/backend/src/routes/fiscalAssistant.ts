@@ -19,7 +19,7 @@ fiscalAssistantRouter.get('/analyze', authenticate, async (req, res, next) => {
     const [txResult, profileResult] = await Promise.all([
       db.query(
         `SELECT t.id, t.description, t.amount, t.transaction_date,
-                t.type, c.name_pt AS category_name
+                c.name_pt AS category_name
          FROM transactions t
          LEFT JOIN categories c ON t.category_id = c.id
          WHERE t.user_id = $1
