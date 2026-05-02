@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { PrivateRoute } from './components/auth/PrivateRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -15,10 +15,9 @@ import { BudgetsPage }       from './pages/BudgetsPage';
 import { GoalsPage }         from './pages/GoalsPage';
 import { CategoriesPage }    from './pages/CategoriesPage';
 import { AccountsPage }      from './pages/AccountsPage';
-import { IRSSimulatorPage }  from './pages/IRSSimulatorPage';
+import { IRSPage }           from './pages/IRSPage';
 import { SettingsPage }      from './pages/SettingsPage';
 import { InvestmentsPage }       from './pages/InvestmentsPage';
-import { FiscalAssistantPage }   from './pages/FiscalAssistantPage';
 import { LearnPage }             from './pages/LearnPage';
 import { NotFoundPage }      from './pages/NotFoundPage';
 
@@ -42,8 +41,8 @@ function App() {
             <Route path="/categories"   element={<CategoriesPage />} />
             <Route path="/accounts"     element={<AccountsPage />} />
             <Route path="/investments"  element={<InvestmentsPage />} />
-            <Route path="/irs"               element={<IRSSimulatorPage />} />
-            <Route path="/fiscal-assistant" element={<FiscalAssistantPage />} />
+            <Route path="/irs"               element={<IRSPage />} />
+            <Route path="/fiscal-assistant" element={<Navigate to="/irs" replace />} />
             <Route path="/learn"            element={<LearnPage />} />
             <Route path="/settings"     element={<SettingsPage />} />
           </Route>

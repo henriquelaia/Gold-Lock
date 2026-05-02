@@ -24,6 +24,29 @@ export interface FiscalScenario {
   new_effective_rate: number;
   actions: string[];
   status: 'baseline' | 'recomendado' | 'possível';
+  irs_jovem_exemption?: number;
+}
+
+export interface NextYearLesson {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  type: 'subutilized' | 'non_deductible';
+  category?: string;
+  category_label?: string;
+  merchant?: string;
+}
+
+export interface KeepDoingItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  type: 'good_habit' | 'good_merchant';
+  category?: string;
+  category_label?: string;
+  merchant?: string;
 }
 
 export interface CategoryPrediction {
@@ -58,11 +81,15 @@ export interface FiscalAnalysis {
   deduction_recommendations: DeductionRecommendation[];
   scenarios: FiscalScenario[];
   predictions: Record<string, CategoryPrediction>;
+  this_year_actions: FiscalScenario[];
+  next_year_lessons: NextYearLesson[];
+  keep_doing: KeepDoingItem[];
   meta: {
     transactions_analysed: number;
     deductible_found: number;
     deduction_agent_trained: boolean;
     predictor_trained: boolean;
+    current_month?: number;
   };
 }
 

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from app.agents.deduction_agent import DeductionAgent
+from app.agents.lessons_agent import LessonsAgent
 from app.agents.predictor_agent import PredictorAgent
 from app.agents.scenario_agent import ScenarioAgent
 from app.agents.score_agent import ScoreAgent
@@ -25,6 +26,7 @@ class FiscalOrchestrator:
         self.scenario_agent = ScenarioAgent()
         self.predictor_agent = PredictorAgent()
         self.score_agent = ScoreAgent()
+        self.lessons_agent = LessonsAgent()
 
     # ── Análise completa ──────────────────────────────────────────────────────
 
@@ -48,17 +50,27 @@ class FiscalOrchestrator:
         # 5. Calcular score fiscal
         score = self.score_agent.score(fiscal_profile, deduction_results, predictions)
 
+        # 6. Gerar lições e bons hábitos (3 tempos: agir / aprender / manter)
+        lessons = self.lessons_agent.analyze(predictions, deduction_results, current_month)
+
+        # this_year_actions = top 3 cenários do ScenarioAgent (excluindo baseline)
+        this_year_actions = [s for s in scenarios if s.get("scenario_id") != "baseline"][:3]
+
         return {
             "fiscal_score": score,
             "deduction_recommendations": [d for d in deduction_results if d.get("is_deductible")],
             "all_deductions": deduction_results,
             "scenarios": scenarios,
             "predictions": predictions,
+            "this_year_actions": this_year_actions,
+            "next_year_lessons": lessons["next_year_lessons"],
+            "keep_doing": lessons["keep_doing"],
             "meta": {
                 "transactions_analysed": len(transactions),
                 "deductible_found": sum(1 for d in deduction_results if d.get("is_deductible")),
                 "deduction_agent_trained": self.deduction_agent.is_trained(),
                 "predictor_trained": self.predictor_agent.is_trained(),
+                "current_month": current_month,
             },
         }
 

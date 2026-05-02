@@ -13,6 +13,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+*.tsbuildinfo
 
 # IDE
 .vscode/
@@ -54,3 +55,13 @@ relatorio/*.fls
 relatorio/*.fdb_latexmk
 relatorio/*.synctex.gz
 relatorio/*.pdf
+.superpowers/
+
+# Test artifacts
+.playwright-mcp/
+*-screenshot.png
+irs-*.png
+
+# ML training data (regenerated via scripts)
+src/ml-service/data/*.csv
+!src/ml-service/data/.gitkeep
