@@ -83,6 +83,55 @@ Projeto académico UBI 2025/2026 — Henrique Miguel Silva Laia (Nº 51667)
 - **Bugfix B2: removido `if (accessToken === 'demo-token')`** de `useFiscalProfile` (regra absoluta secção 15.2) e `ConnectBankModal`
 - **Bugfix B3: removido `irsApi.optimize`** fantasma (endpoint não existe no backend)
 
+### Sprint 10 — Assistente Fiscal IA com OE 2026 ✅
+
+Sprint mais ambicioso até agora — actualização legal completa, multi-agent ML e chat conversacional.
+
+**10a — Motor fiscal OE 2026 (Lei 73-A/2025)**
+- `IRS_BRACKETS_2026` com 9 escalões e parcelas recalculadas (12.50% → 48%)
+- IRS Jovem (art.º 12.º-B CIRS) com `IRS_JOVEM_EXEMPTION` map (100/75/75/75/50/50/50/25/25/25%) até teto €29.542,15
+- Limites PPR por idade: ≤34a → €400, 35–50a → €350, 51+ → €300
+- Migration 004: `is_irs_jovem`, `years_working`, `age` em `fiscal_profile`
+
+**10b — 4 agentes ML (FiscalOrchestrator)**
+- `DeductionAgent` (TF-IDF + Random Forest) — classifica transações em saúde/educação/habitação/encargos gerais/PPR/não-dedutível com confidence
+- `PredictorAgent` (5× GradientBoostingRegressor) — prevê total fim-de-ano por categoria com fallback linear
+- `ScenarioAgent` — até 9 cenários greedy (PPR máximo, conjunta vs separada, IRS Jovem, max saúde/educação, combinados, óptimo total) com poupança ordenada
+- `ScoreAgent` — score 0–100 em 5 sub-componentes (cobertura, utilização limites, PPR, eficiência efectiva, sensibilidade ao escalão)
+
+**10c — Página `/irs` unificada**
+- Substitui `IRSSimulatorPage` + `FiscalAssistantPage` (ambas apagadas)
+- 3 tabs: **Otimizar** (3 lentes — ⚡Ainda dá tempo / 📚Lições para 2027 / ✅Manter), **Editar dados**, **Detalhes**
+- Componentes novos: `Hero` (dark card com valor grande dourado, 3 KPIs e action footer integrada), `ActionCard` (3 variants: urgent/lesson/keep com tags deadline/law)
+- `LessonsAgent` novo — categorias <30% subutilização, merchants não-dedutíveis >€50, hábitos >80% utilização
+- `FiscalOrchestrator.analyze()` devolve `this_year_actions`, `next_year_lessons`, `keep_doing`
+- `/fiscal-assistant` redirecciona para `/irs`; sidebar limpa
+- Lucide SVGs (sem emojis), tokens gold/ink-900/ink-500
+
+**10d — Polish, agregação familiar e chat IA (3 fases)**
+
+*Fase 1 — Polish + auto-agregação:*
+- `EmptyState.tsx` e `GlassButton.tsx` corrigidos de roxo `#493ee5` para `var(--gold)` (afecta 7 páginas)
+- `fiscalAssistant.ts` agora consulta `investments` e passa-os ao ML
+- Cenário `redirect_to_ppr` (redirecionar parte de ações/ETFs para PPR)
+- Lição "Investimentos sem benefício fiscal" para utilizadores com ações mas sem PPR
+
+*Fase 2 — IRS Jovem vs incluir com pais como dependente:*
+- Migration 005: `parent_household_income`, `parent_marital_status`, `parent_other_dependents`, `can_be_aggregated_with_parents`
+- Cenário `aggregated_with_parents` (art.º 13.º n.º 4 CIRS): elegível se ≤25 anos e rendimento ≤ RMMG×14 (€12.180 em 2026)
+- Helper `_calc_household` activa quociente conjugal quando os pais são casados
+- Compara 2 caminhos: jovem sozinho com IRS Jovem **vs** rendimento somado ao agregado dos pais com +1 dependente
+- Frontend: secção "Família" condicional no tab Editar com badge "Elegível" dourado
+
+*Fase 3 — Chat IA fiscal persistente:*
+- Migration 006: `chat_conversations` + `chat_messages` (com tracking de tokens input/output/cache)
+- Backend: `@anthropic-ai/sdk@^0.92`, `fiscalChatService.ts` com prompt caching (5min TTL Anthropic) que injecta contexto fiscal completo (perfil + transações + cenários) no system prompt
+- Backend: `fiscalChat.ts` com SSE streaming (`POST /message`), GET/DELETE conversations
+- Frontend: `useFiscalChat.ts` com streaming via `fetch` + `ReadableStream` (EventSource não suporta Authorization)
+- Frontend: `FiscalChat.tsx` drawer 420px lateral com 4 sugestões, textarea, bubbles, histórico colapsável
+- Botão flutuante dourado "Pergunta-me" bottom-right em `IRSPage`
+- 503 controlado quando `ANTHROPIC_API_KEY` ausente — resto da app continua
+
 ---
 
 ## Sprints Planeados
@@ -95,17 +144,6 @@ Projeto académico UBI 2025/2026 — Henrique Miguel Silva Laia (Nº 51667)
 - [ ] Parsers por corretora: regexes para extrair transações de cada formato
 - [ ] Frontend: drag-and-drop de PDF, preview dos dados extraídos antes de confirmar
 - [ ] Validação: verificar duplicados por ISIN + data antes de inserir
-
----
-
-### Sprint 10 — Assistente Fiscal IA
-**Objetivo:** Chatbot fiscal que responde a perguntas sobre IRS, deduções e otimização fiscal.
-
-**Tarefas:**
-- [ ] `POST /api/ai/fiscal-chat` — OpenAI GPT-4 com contexto do perfil fiscal do utilizador
-- [ ] Contexto: perfil fiscal, simulações anteriores, deduction alerts pendentes
-- [ ] `AIAssistantPage.tsx` — interface de chat com histórico
-- [ ] Rate limiting específico para chamadas AI (custo por token)
 
 ---
 

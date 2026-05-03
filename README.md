@@ -6,7 +6,7 @@
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
 
-Plataforma web de gestão financeira pessoal com integração Open Banking (PSD2/Salt Edge), categorização automática de transações com Machine Learning e simulação fiscal IRS 2024 — desenhada especificamente para o mercado **português**.
+Plataforma web de gestão financeira pessoal com integração Open Banking (PSD2/Salt Edge), categorização automática de transações com Machine Learning, simulação fiscal IRS 2026 (OE 2026) e assistente fiscal IA conversacional — desenhada especificamente para o mercado **português**.
 
 **Projeto de Engenharia Informática — Universidade da Beira Interior (2025/2026)**  
 Aluno: Henrique Miguel Silva Laia (Nº 51667)  
@@ -158,15 +158,20 @@ OPENAI_API_KEY=
 | GET | `/api/goals` | Listar metas de poupança |
 | GET | `/api/categories` | Listar categorias (com `parent_id` para hierarquia) |
 | POST | `/api/categories` | Criar categoria/subcategoria (com `parentId` opcional) |
-| POST | `/api/irs/simulate` | Simular IRS 2024 (flag `saveSimulation` persiste em `irs_simulations`) |
+| POST | `/api/irs/simulate` | Simular IRS 2026 (flag `saveSimulation` persiste em `irs_simulations`) |
 | GET | `/api/irs/simulations` | Histórico de simulações do utilizador |
 | DELETE | `/api/irs/simulations/:id` | Eliminar simulação |
-| GET | `/api/irs/brackets` | Escalões IRS 2024 |
+| GET | `/api/irs/brackets` | Escalões IRS 2026 (Lei 73-A/2025) |
 | GET | `/api/irs/deduction-alerts` | Alertas de dedução pendentes (ML) |
 | GET | `/api/investments` | Listar portfólio de investimentos |
 | GET | `/api/market/quote/:ticker` | Cotação atual (Massive p/ ações & ETFs, CoinGecko p/ crypto) |
 | GET | `/api/market/search?q=` | Pesquisa de tickers |
 | GET | `/api/market/history/:ticker?period=30d\|1y` | Histórico de preços |
+| GET | `/api/fiscal-assistant/analyze` | Análise fiscal IA: score 0-100, top 3 acções, lições, hábitos a manter |
+| POST | `/api/fiscal-assistant/train` | Re-treinar modelos ML com dados sintéticos OE 2026 |
+| POST | `/api/fiscal-chat/message` | Chat IA fiscal (SSE streaming, Anthropic Claude) |
+| GET | `/api/fiscal-chat/conversations` | Listar conversas anteriores |
+| GET | `/api/fiscal-chat/conversations/:id` | Mensagens de uma conversa |
 | GET | `/api/health` | Health check |
 
 Resposta padrão: `{ "status": "success", "data": ... }` ou `{ "status": "error", "message": ... }`
@@ -244,8 +249,8 @@ cd src/frontend && npm run typecheck && npm run lint && npm run build
 | 5 | ✅ | Dashboard + Transações com dados reais (skeletons, filtros mês/conta, fix categoria) |
 | 6 | ✅ | Budgets edição + Goals skeletons + CategoriesPage com subcategorias |
 | 7 | ✅ | IRS Simulator persistente + histórico + bugfix parcelas + remoção demo-token |
+| 10 | ✅ | **Assistente Fiscal IA com OE 2026** — motor IRS Lei 73-A/2025, IRS Jovem (art.º 12.º-B), 5 agentes ML (Deduction/Predictor/Scenario/Score/Lessons), página `/irs` unificada com 3 lentes (Otimizar/Editar/Detalhes), comparação IRS Jovem vs incluir com pais como dependente (art.º 13.º n.º 4 CIRS), chat IA Anthropic Claude com streaming SSE e prompt caching |
 | 9 | 🔜 | PDF import de corretoras (Degiro, XTB, Trade Republic) |
-| 10 | ⏳ | Assistente Fiscal IA (OpenAI) |
 | 11 | ⏳ | Testes (Vitest + Jest, ≥70% cobertura) |
 | 12 | ⏳ | Deploy + Relatório LaTeX final |
 
