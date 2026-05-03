@@ -26,6 +26,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Hero, type HeroAction } from '../components/irs/Hero';
 import { ActionCard, type ActionTag } from '../components/irs/ActionCard';
+import { FiscalChatTrigger, FiscalChatDrawer } from '../components/irs/FiscalChat';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -127,6 +128,7 @@ type Tab = 'optimize' | 'edit' | 'details';
 export function IRSPage() {
   const [tab, setTab] = useState<Tab>('optimize');
   const [form, setForm] = useState<SimulateInput>(DEFAULT_FORM);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const debouncedForm = useDebouncedValue(form, 300);
 
@@ -338,6 +340,10 @@ export function IRSPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Chat IA — botão flutuante + drawer */}
+      <FiscalChatTrigger onOpen={() => setChatOpen(true)} />
+      <FiscalChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }

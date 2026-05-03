@@ -208,3 +208,11 @@ export const fiscalAssistantApi = {
   train:   () => api.post('/fiscal-assistant/train', {}),
   metrics: () => api.get('/fiscal-assistant/metrics'),
 };
+
+export const fiscalChatApi = {
+  conversations: () => api.get('/fiscal-chat/conversations'),
+  messages:      (id: string) => api.get(`/fiscal-chat/conversations/${id}`),
+  deleteConv:    (id: string) => api.delete(`/fiscal-chat/conversations/${id}`),
+};
+
+export const FISCAL_CHAT_BASE = `${API_URL}/fiscal-chat`;

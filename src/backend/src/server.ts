@@ -17,6 +17,7 @@ import { categoriesRouter } from './routes/categories.js';
 import { fiscalProfileRouter } from './routes/fiscalProfile.js';
 import { marketRouter } from './routes/market.js';
 import { fiscalAssistantRouter } from './routes/fiscalAssistant.js';
+import { fiscalChatRouter } from './routes/fiscalChat.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import './config/database.js';
@@ -57,6 +58,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/fiscal-profile', fiscalProfileRouter);
 app.use('/api/market', marketRouter);
 app.use('/api/fiscal-assistant', fiscalAssistantRouter);
+app.use('/api/fiscal-chat', fiscalChatRouter);
 
 // ── Error Handler ──
 app.use(errorHandler);
