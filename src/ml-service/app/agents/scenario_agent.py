@@ -39,6 +39,11 @@ IRS_JOVEM_EXEMPTION = {1: 1.00, 2: 0.75, 3: 0.75, 4: 0.75,
                        8: 0.25, 9: 0.25, 10: 0.25}
 IRS_JOVEM_TETO = 29542.15
 
+# Limite legal "ser dependente" — art.º 13.º n.º 4 CIRS
+# Filhos podem ser dependentes se ≤ 25 anos e rendimento anual ≤ RMMG × 14.
+RMMG_2026_ANUAL = 12180.0    # Salário mínimo nacional × 14 (estimativa OE 2026)
+DEPENDENT_AGE_MAX = 25       # filhos estudantes (acima é só por incapacidade)
+
 
 def _ppr_limit(age: int) -> float:
     """OE 2026 — limites PPR por faixa etária (art.º 21.º EBF)."""
@@ -272,6 +277,76 @@ class ScenarioAgent:
             )
             if s:
                 scenarios.append(s)
+
+        # ── Cenário 4b: Incluir com pais como dependente ──────────────────────
+        # Art.º 13.º n.º 4 CIRS — só elegível se ≤25 anos e rendimento ≤ RMMG×14
+        parent_income = float(fiscal_profile.get("parent_household_income") or 0)
+        parent_status = fiscal_profile.get("parent_marital_status") or "single"
+        parent_other_deps = int(fiscal_profile.get("parent_other_dependents") or 0)
+
+        eligible_dependent = (
+            age is not None
+            and age <= DEPENDENT_AGE_MAX
+            and gross <= RMMG_2026_ANUAL
+            and parent_income > 0
+        )
+
+        if eligible_dependent:
+            # Helper para calcular IRS do agregado dos pais respeitando o quociente
+            # conjugal: se married, divide rendimento em 2 cônjuges (50/50) e usa
+            # joint_income para activar o quociente em _calculate_irs.
+            def _calc_household(income: float, ss_val: float, status_h: str,
+                                deps: int, withhold: float, dedu: dict) -> dict:
+                if status_h == "married" and income > 0:
+                    half = income / 2
+                    half_ss = ss_val / 2
+                    return _calculate_irs(half, half_ss, "married", deps, withhold,
+                                          dedu, joint_income=half)
+                return _calculate_irs(income, ss_val, status_h, deps, withhold, dedu)
+
+            # Caso A — jovem sozinho (com IRS Jovem se aplicável) + pais sem ele
+            irs_user_alone = _calculate_irs(
+                gross, ss, status, dependents, withholding,
+                current_deductions, age=age,
+                irs_jovem=is_jovem, years_working=years_w,
+            )
+            parent_ss = parent_income * 0.11
+            irs_parents_no_user = _calc_household(
+                parent_income, parent_ss, parent_status,
+                parent_other_deps, 0, {},
+            )
+
+            # Caso B — incluído como dependente: rendimento somado, +1 dependente.
+            # A retenção do jovem é "transferida" para o agregado.
+            combined_income = parent_income + gross
+            combined_ss = parent_ss + ss
+            irs_aggregated = _calc_household(
+                combined_income, combined_ss, parent_status,
+                parent_other_deps + 1, withholding, current_deductions,
+            )
+
+            a_total = irs_user_alone["result"] + irs_parents_no_user["result"]
+            b_total = irs_aggregated["result"]
+            saving = round(a_total - b_total, 2)
+
+            if saving > 50:
+                fmt = lambda n: f"{round(n):,}".replace(",", ".")
+                scenarios.append({
+                    "scenario_id": "aggregated_with_parents",
+                    "label": f"Declarar como dependente dos pais — poupança agregada {fmt(saving)}€",
+                    "tax_saving_eur": saving,
+                    "tax_saving_pct": round(saving / max(1, abs(a_total)) * 100, 1),
+                    "new_result": b_total,
+                    "new_effective_rate": irs_aggregated["effective_rate"],
+                    "irs_jovem_exemption": 0.0,
+                    "actions": [
+                        f"O agregado familiar (tu + pais) poupa {fmt(saving)}€ se fores incluído como dependente",
+                        "Perdes o reembolso individual e o IRS Jovem, mas os pais beneficiam de +€600 de dedução por ti",
+                        f"Elegível: ≤25 anos e rendimento ≤ {fmt(RMMG_2026_ANUAL)}€ (art.º 13.º n.º 4 CIRS)",
+                        "Decisão recomendada apenas se a poupança líquida for partilhada com os pais",
+                    ],
+                    "status": "recomendado" if saving > 200 else "possível",
+                })
 
         # ── Cenário 5: Maximizar saúde ───────────────────────────────────────
         saude_max_exp = DEDUCTION_LIMITS["saude"]["limit"] / DEDUCTION_LIMITS["saude"]["rate"]

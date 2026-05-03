@@ -2,15 +2,21 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { irsApi } from '../services/api';
 import { toast } from '../store/toastStore';
 
+export type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed';
+
 export interface SimulateInput {
   grossIncome: number;
-  maritalStatus: 'single' | 'married' | 'divorced' | 'widowed';
+  maritalStatus: MaritalStatus;
   dependents: number;
   socialSecurityContributions: number;
   withholdingTax: number;
   age?: number;
   irsJovem?: boolean;
   yearsWorking?: number;
+  // Agregação familiar (Fase 2 Sprint 10d) — só usados para o cenário aggregated_with_parents
+  parentHouseholdIncome?: number;
+  parentMaritalStatus?: MaritalStatus;
+  parentOtherDependents?: number;
   deductions: {
     saude: number;
     educacao: number;

@@ -110,8 +110,15 @@ const DEFAULT_FORM: SimulateInput = {
   withholdingTax:              3800,
   irsJovem:                    false,
   yearsWorking:                1,
+  parentHouseholdIncome:       0,
+  parentMaritalStatus:         'married',
+  parentOtherDependents:       0,
   deductions:                  { saude: 0, educacao: 0, habitacao: 0, restauracao: 0, ppr: 0 },
 };
+
+// Limite legal "ser dependente" — art.º 13.º n.º 4 CIRS (espelha RMMG_2026_ANUAL no Python)
+const RMMG_2026_ANUAL = 12180;
+const DEPENDENT_AGE_MAX = 25;
 
 type Tab = 'optimize' | 'edit' | 'details';
 
@@ -154,6 +161,12 @@ export function IRSPage() {
       maritalStatus:               (fiscalProfile.marital_status as SimulateInput['maritalStatus']) ?? f.maritalStatus,
       dependents:                  Number(fiscalProfile.dependents      ?? f.dependents),
       withholdingTax:              Number(fiscalProfile.withholding_tax ?? f.withholdingTax),
+      age:                         fiscalProfile.age != null ? Number(fiscalProfile.age) : f.age,
+      irsJovem:                    fiscalProfile.is_irs_jovem ?? f.irsJovem,
+      yearsWorking:                fiscalProfile.years_working != null ? Number(fiscalProfile.years_working) : f.yearsWorking,
+      parentHouseholdIncome:       Number(fiscalProfile.parent_household_income ?? f.parentHouseholdIncome ?? 0),
+      parentMaritalStatus:         (fiscalProfile.parent_marital_status as SimulateInput['parentMaritalStatus']) ?? f.parentMaritalStatus,
+      parentOtherDependents:       Number(fiscalProfile.parent_other_dependents ?? f.parentOtherDependents ?? 0),
       deductions: {
         ...f.deductions,
         ppr: Number(fiscalProfile.ppr_contributions ?? f.deductions.ppr),
@@ -169,6 +182,12 @@ export function IRSPage() {
       dependents:                  form.dependents,
       withholdingTax:              form.withholdingTax,
       pprContributions:            form.deductions.ppr,
+      age:                         form.age,
+      isIrsJovem:                  form.irsJovem,
+      yearsWorking:                form.yearsWorking,
+      parentHouseholdIncome:       form.parentHouseholdIncome,
+      parentMaritalStatus:         form.parentMaritalStatus,
+      parentOtherDependents:       form.parentOtherDependents,
     });
   }
 
@@ -537,6 +556,28 @@ function EditTab({
           <Field label="Retenções na Fonte (total retido no ano)" value={form.withholdingTax}
             onChange={v => setForm(f => ({ ...f, withholdingTax: v }))} />
 
+          <div>
+            <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--ink-500)' }}>
+              Idade
+            </label>
+            <p className="text-[10px] mb-1.5" style={{ color: 'var(--ink-500)', opacity: 0.6 }}>
+              Necessária para IRS Jovem e limites PPR por escalão etário
+            </p>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
+              style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid var(--gold-border)' }}>
+              <input type="number" min={0} max={120}
+                value={form.age ?? ''}
+                onChange={e => {
+                  const v = parseInt(e.target.value, 10);
+                  setForm(f => ({ ...f, age: Number.isFinite(v) && v > 0 ? Math.min(v, 120) : undefined }));
+                }}
+                className="flex-1 bg-transparent text-sm font-semibold outline-none"
+                style={{ color: 'var(--ink-900)' }}
+                placeholder="—" />
+              <span className="text-xs shrink-0" style={{ color: 'var(--ink-500)', opacity: 0.5 }}>anos</span>
+            </div>
+          </div>
+
           {/* IRS Jovem */}
           <div className="rounded-xl p-3 space-y-3"
             style={{ background: 'var(--gold-subtle)', border: '1px solid var(--gold-border)' }}>
@@ -610,6 +651,8 @@ function EditTab({
             </div>
           ))}
         </motion.section>
+
+        <FamilySection form={form} setForm={setForm} />
       </div>
 
       <div className="lg:col-span-2 space-y-3">
@@ -683,6 +726,86 @@ function Select({
         {children}
       </select>
     </div>
+  );
+}
+
+function FamilySection({
+  form, setForm,
+}: {
+  form: SimulateInput;
+  setForm: (f: (prev: SimulateInput) => SimulateInput) => void;
+}) {
+  const eligible =
+    form.age != null &&
+    form.age <= DEPENDENT_AGE_MAX &&
+    form.grossIncome <= RMMG_2026_ANUAL;
+
+  // Não mostra se utilizador não é elegível e não há dados preenchidos —
+  // evita poluir o form para utilizadores fora da janela legal.
+  if (!eligible && !form.parentHouseholdIncome) return null;
+
+  return (
+    <motion.section {...fadeUp(0.15)} className="rounded-2xl p-5 space-y-4" style={card}>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold" style={{ color: 'var(--ink-900)' }}>
+            Família — incluir com pais (opcional)
+          </h2>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--ink-500)' }}>
+            Compara IRS Jovem sozinho vs. ser dependente · art.º 13.º n.º 4 CIRS
+          </p>
+        </div>
+        <span
+          className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
+          style={{
+            background: eligible ? 'var(--gold-subtle)' : 'rgba(0,0,0,0.05)',
+            color: eligible ? 'var(--gold)' : 'var(--ink-500)',
+          }}
+        >
+          {eligible ? 'Elegível' : 'Não elegível'}
+        </span>
+      </div>
+
+      {!eligible && (
+        <p className="text-xs" style={{ color: 'var(--ink-500)' }}>
+          Para seres dependente fiscal precisas de ter ≤ 25 anos e rendimento bruto anual
+          ≤ €{RMMG_2026_ANUAL.toLocaleString('pt-PT')} (RMMG × 14).
+        </p>
+      )}
+
+      <Field
+        label="Rendimento bruto anual dos pais"
+        sub="Soma dos rendimentos do agregado dos pais (Cat. A)"
+        value={form.parentHouseholdIncome ?? 0}
+        onChange={v => setForm(f => ({ ...f, parentHouseholdIncome: v }))}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <Select
+          label="Estado civil dos pais"
+          value={form.parentMaritalStatus ?? 'married'}
+          onChange={v => setForm(f => ({ ...f, parentMaritalStatus: v as SimulateInput['parentMaritalStatus'] }))}
+        >
+          <option value="married">Casados</option>
+          <option value="single">Solteiro(a)</option>
+          <option value="divorced">Divorciado(a)</option>
+          <option value="widowed">Viúvo(a)</option>
+        </Select>
+        <Select
+          label="Outros dependentes"
+          value={String(form.parentOtherDependents ?? 0)}
+          onChange={v => setForm(f => ({ ...f, parentOtherDependents: Number(v) }))}
+        >
+          {[0, 1, 2, 3, 4, 5].map(n => (
+            <option key={n} value={n}>{n} {n === 1 ? 'irmão/ã' : 'irmãos'}</option>
+          ))}
+        </Select>
+      </div>
+
+      <p className="text-[10px]" style={{ color: 'var(--ink-500)', opacity: 0.7 }}>
+        Se a poupança agregada for &gt; €50, a comparação aparece como cenário em "Otimizar".
+      </p>
+    </motion.section>
   );
 }
 
